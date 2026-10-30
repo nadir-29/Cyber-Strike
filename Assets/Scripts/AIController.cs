@@ -1,7 +1,8 @@
 using UnityEngine;
 
-// Drives a Fighter for the computer opponent: approaches the target, attacks in range,
-// sometimes backs off, goes for ability pickups and uses its ability when useful. Like PlayerInputController it only issues inputs; gameplay
+// Drives a Fighter for the computer opponent: approaches the target (dashing in from afar), attacks in range,
+// sometimes backs off, goes for ability pickups, uses its ability when useful, fires its special when the
+// meter is full and dashes away from incoming attacks. Like PlayerInputController it only issues inputs; gameplay
 // rules stay in Fighter and FighterCombat.
 // Decisions are re-evaluated once per reaction interval, so the AI reacts with a delay.
 // An AIProfile (set in the Inspector or by OpponentLoader) overrides the tuning below per opponent.
@@ -50,6 +51,20 @@ public class AIController : MonoBehaviour
     [Tooltip("Jumps over the target when it stands this close between it and a pickup.")]
     [SerializeField] float jumpOverDistance = 1.6f;
 
+    [Header("Special and Dash")]
+    [Tooltip("Chance per decision to consider the special when the meter is full.")]
+    [SerializeField, Range(0f, 1f)] float specialChance = 0.6f;
+    [Tooltip("1 = only fires it in range at an open target; 0 = also throws it into a guard or from a bit too far.")]
+    [SerializeField, Range(0f, 1f)] float specialSmarts = 0.6f;
+    [SerializeField] float specialRange = 1.4f;
+    [Tooltip("Chance per decision to dash in when approaching the target or a pickup from farther than Dash In Distance.")]
+    [SerializeField, Range(0f, 1f)] float dashInChance = 0.25f;
+    [SerializeField] float dashInDistance = 4f;
+    [Tooltip("Chance to dash away from an attack the target starts in range (doubled against its special).")]
+    [SerializeField, Range(0f, 1f)] float dodgeChance = 0.15f;
+    [Tooltip("Seconds a dodge stays pending after the reaction delay, waiting for the fighter to be free to dash.")]
+    [SerializeField] float dodgeWindow = 0.3f;
+
     [Header("Blocking")]
     [Tooltip("Chance to raise the guard when the target starts an attack in range or after taking a hit (a quarter of it, per decision, to guard pre-emptively when close).")]
     [SerializeField, Range(0f, 1f)] float blockChance = 0.35f;
@@ -67,6 +82,7 @@ public class AIController : MonoBehaviour
     Health health;
     Stamina stamina;
     FighterAbilities abilities;
+    SpecialMeter meter;
     Health targetHealth;
     FighterCombat targetCombat;
     bool recovering;
@@ -77,6 +93,8 @@ public class AIController : MonoBehaviour
     float blockHoldTimer;
     float blockCooldownTimer;
     bool guarding;
+    bool dodgePending;
+    float dodgeTimer;
 
     void Awake()
     {
@@ -85,6 +103,7 @@ public class AIController : MonoBehaviour
         health = GetComponent<Health>();
         stamina = GetComponent<Stamina>();
         abilities = GetComponent<FighterAbilities>();
+        meter = GetComponent<SpecialMeter>();
         if (target != null)
         {
             targetHealth = target.GetComponent<Health>();
@@ -117,6 +136,10 @@ public class AIController : MonoBehaviour
         blockReactionTime = profile.blockReactionTime;
         blockHoldTime = profile.blockHoldTime;
         blockCooldown = profile.blockCooldown;
+        specialChance = profile.specialChance;
+        specialSmarts = profile.specialSmarts;
+        dashInChance = profile.dashInChance;
+        dodgeChance = profile.dodgeChance;
     }
 
     void OnEnable()
@@ -132,6 +155,7 @@ public class AIController : MonoBehaviour
         if (targetCombat != null) targetCombat.AttackStarted -= OnTargetAttack;
         fighter.SetMoveInput(0f);
         DropGuard();
+        dodgePending = false;
     }
 
     void Update()
@@ -148,6 +172,7 @@ public class AIController : MonoBehaviour
         backOffTimer -= dt;
         thinkTimer -= dt;
         blockCooldownTimer -= dt;
+        UpdateDodge(dt);
         if (UpdateGuard(dt)) return; // guard up (or about to go up): nothing else to decide
         if (thinkTimer > 0f) return;
 
@@ -162,6 +187,7 @@ public class AIController : MonoBehaviour
         int toTarget = dx >= 0f ? 1 : -1;
 
         MaybeUseAbility(distance);
+        if (MaybeSpecial(distance, toTarget)) return;
 
         if (backOffTimer > 0f)
         {
@@ -189,6 +215,7 @@ public class AIController : MonoBehaviour
         if (distance > (iceArmed ? punchRange : kickRange))
         {
             fighter.SetMoveInput(toTarget);
+            if (distance > dashInDistance && Random.value < dashInChance) fighter.Dash(toTarget);
             return;
         }
 
@@ -233,6 +260,7 @@ public class AIController : MonoBehaviour
 
         int toPickup = nearest.transform.position.x >= transform.position.x ? 1 : -1;
         fighter.SetMoveInput(toPickup);
+        if (best > dashInDistance && Random.value < dashInChance) fighter.Dash(toPickup);
 
         // The target stands between us and the pickup: jump over it.
         if (toPickup == toTarget && distance < best && distance < jumpOverDistance)
@@ -258,14 +286,58 @@ public class AIController : MonoBehaviour
         if (useful) abilities.UseAbility();
     }
 
-    // The target started an attack: maybe raise the guard after a reaction delay.
+    // Fires the cyber uppercut when the meter is full. A smart AI waits for the target to be in range and
+    // not guarding; a careless one also throws it into a guard or from a bit too far, and whiffs.
+    // Returns true if it fired.
+    bool MaybeSpecial(float distance, int toTarget)
+    {
+        if (!combat.CanSpecial || Random.value > specialChance) return false;
+
+        bool careless = Random.value > specialSmarts;
+        bool open = distance <= specialRange && (targetCombat == null || !targetCombat.IsGuarding);
+        if (!(open || (careless && distance <= specialRange * 2f))) return false;
+
+        fighter.SetMoveInput(0f);
+        fighter.Face(toTarget);
+        combat.Special();
+        return true;
+    }
+
+    // The target started an attack: maybe dash away from it, or raise the guard, after a reaction delay.
     void OnTargetAttack(AttackType type)
     {
         if (target == null || health.IsDead) return;
         float dx = transform.position.x - target.transform.position.x;
         bool facingUs = (dx >= 0f ? 1 : -1) == target.FacingDirection;
-        if (!facingUs || Mathf.Abs(dx) > blockRange || Random.value > blockChance) return;
+        if (!facingUs || Mathf.Abs(dx) > blockRange) return;
+
+        float dodge = type == AttackType.Special ? Mathf.Min(1f, dodgeChance * 2f) : dodgeChance;
+        if (!dodgePending && !guarding && Random.value < dodge)
+        {
+            dodgePending = true;
+            dodgeTimer = Roll(blockReactionTime);
+            return;
+        }
+        if (Random.value > blockChance) return;
         TryStartBlock(Roll(blockReactionTime));
+    }
+
+    // Counts down the dodge reaction, then dashes away from the target as soon as it is free to
+    // (e.g. once its own attack ends); gives up if that takes longer than the dodge window.
+    void UpdateDodge(float dt)
+    {
+        if (!dodgePending) return;
+        dodgeTimer -= dt;
+        if (dodgeTimer > 0f) return;
+        if (fighter.CanDash)
+        {
+            fighter.Dash(transform.position.x >= target.transform.position.x ? 1 : -1);
+            dodgePending = false;
+        }
+        else if (dodgeTimer < -dodgeWindow)
+        {
+            dodgePending = false;
+        }
     }
 
     bool TryStartBlock(float delay)

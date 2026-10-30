@@ -8,7 +8,8 @@ written as 22.05 kHz 16-bit mono WAV files.
 Outputs (Assets/Audio/)
   punch.wav, kick.wav, hit.wav, deflect.wav, pickup.wav,
   ability_double_damage.wav, ability_healing.wav, ability_steal.wav, ability_ice_strike.wav,
-  win.wav, lose.wav
+  win.wav, lose.wav,
+  special.wav (cyber uppercut wind-up), special_hit.wav (uppercut impact), dash.wav, special_ready.wav (meter full)
 Outputs (Assets/Audio/UI/)
   ui_hover.wav (soft high blip), ui_click.wav (punchier confirm); both quiet, menu-only
 Outputs (Assets/Audio/Ambience/)
@@ -232,6 +233,39 @@ def lose():
     return mix(track, bass, sag, offsets=[0.0, 0.0, 0.62])
 
 
+def special():
+    """Cyber uppercut wind-up: a charging saw sweep with a fast tremolo, capped by a bright neon zap."""
+    a = tone(0.2, sweep(140, 900, 0.6), saw, 0.3, release=0.02)
+    b = tone(0.2, sweep(143, 920, 0.6), saw, 0.3, release=0.02)
+    charge = [s * (0.55 + 0.45 * square(i / RATE * 40)) for i, s in enumerate(mix(a, b))]
+    zap = mix(tone(0.2, sweep(1800, 600), lambda p: square(p, 0.25), 0.3, curve=1.3),
+              noise(0.12, 0.35, curve=2.0, hold=1))
+    return bitcrush(mix(charge, zap, offsets=[0.0, 0.17]), steps=20, hold=2)
+
+
+def special_hit():
+    """Uppercut impact: deep sub thump, heavy crunch, an electric zap ringing upward and a short echo."""
+    thump = tone(0.32, sweep(150, 32), sine, 1.0, curve=1.3)
+    crunch = bitcrush(noise(0.16, 0.8, curve=2.0, hold=2), steps=10, hold=3)
+    zap = tone(0.3, sweep(500, 2600, 0.7), lambda p: square(p, 0.2), 0.25, curve=1.5)
+    ring = mix(tone(0.4, note(15), triangle, 0.18, curve=2.0), tone(0.4, note(22), triangle, 0.12, curve=2.4))
+    return echo(mix(thump, crunch, zap, ring, offsets=[0.0, 0.0, 0.02, 0.04]), delay=0.07, feedback=0.3, taps=2)
+
+
+def dash():
+    """Quick air rush: a short noise swoosh swelling in and out with a soft rising chirp."""
+    rush = noise(0.16, 0.45, curve=1.0, hold=2)
+    swell = [s * math.sin(math.pi * i / len(rush)) for i, s in enumerate(rush)]
+    chirp = tone(0.1, sweep(400, 1100), triangle, 0.12, curve=1.4)
+    return mix(swell, chirp, offsets=[0.0, 0.03])
+
+
+def special_ready():
+    """Meter full: two quick rising pulse notes with a bright echo."""
+    notes = [(note(10), 0.06), (note(22), 0.14)]
+    return echo(seq(notes, duty_fn=0.25, volume=0.3, gap=0.01), delay=0.06, feedback=0.35, taps=2)
+
+
 def ui_hover():
     """Soft high blip: a tiny triangle chirp sliding up, very short and quiet."""
     return tone(0.045, sweep(1500, 2100), triangle, 0.22, attack=0.002, curve=1.6)
@@ -302,6 +336,7 @@ def main():
         "ability_double_damage": double_damage, "ability_healing": healing,
         "ability_steal": steal, "ability_ice_strike": ice_strike,
         "win": win, "lose": lose,
+        "special": special, "special_hit": special_hit, "dash": dash, "special_ready": special_ready,
         "UI/ui_hover": ui_hover, "UI/ui_click": ui_click,
     }
     for name, make in sounds.items():

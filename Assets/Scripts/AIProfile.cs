@@ -45,6 +45,18 @@ public class AIProfile : ScriptableObject
     [Tooltip("Seconds after dropping the guard before it can block again.")]
     [Min(0f)] public float blockCooldown = 0.9f;
 
+    [Header("Special (cyber uppercut)")]
+    [Tooltip("Chance per decision to consider the special when the meter is full.")]
+    [Range(0f, 1f)] public float specialChance = 0.6f;
+    [Tooltip("1 = only fires it in range at an open target; 0 = also throws it into a guard or from a bit too far, often whiffing.")]
+    [Range(0f, 1f)] public float specialSmarts = 0.6f;
+
+    [Header("Dashing")]
+    [Tooltip("Chance per decision to dash in when approaching the target or a pickup from far away.")]
+    [Range(0f, 1f)] public float dashInChance = 0.25f;
+    [Tooltip("Chance to dash away from an attack the target starts in range (doubled against its special), instead of blocking.")]
+    [Range(0f, 1f)] public float dodgeChance = 0.15f;
+
     [Header("Stat Bonus")]
     [Tooltip("Added to the fighter's max HP.")]
     [Min(0)] public int bonusHealth;

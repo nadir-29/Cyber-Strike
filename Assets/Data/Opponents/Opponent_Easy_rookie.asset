@@ -52,4 +52,10 @@ MonoBehaviour:
   - {fileID: 7746023676790544333, guid: 12e2ae8eec518bb41bd67efed5f26329, type: 3}
   - {fileID: -6147657060185610065, guid: 12e2ae8eec518bb41bd67efed5f26329, type: 3}
   - {fileID: -2003926458182301416, guid: 12e2ae8eec518bb41bd67efed5f26329, type: 3}
+  - {fileID: -6633387044472355265, guid: d6d8c5a86317dce4b903ba7714dcd0ca, type: 3}
+  - {fileID: -3634225273325996543, guid: d6d8c5a86317dce4b903ba7714dcd0ca, type: 3}
+  - {fileID: -2465327170928680233, guid: d6d8c5a86317dce4b903ba7714dcd0ca, type: 3}
+  - {fileID: -3901877992710446848, guid: d6d8c5a86317dce4b903ba7714dcd0ca, type: 3}
+  - {fileID: -5262443319085573609, guid: d64ccbc5ae8c82944be318f7289eb670, type: 3}
+  - {fileID: 4182909873886400561, guid: d64ccbc5ae8c82944be318f7289eb670, type: 3}
   aiProfile: {fileID: 11400000, guid: a407acc18c416cc408899b2a2484d769, type: 2}

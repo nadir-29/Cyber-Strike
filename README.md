@@ -10,9 +10,11 @@ Built with Unity 6 (6000.6.7f1), 2D URP and the Input System package.
 | Action      | Input              |
 |-------------|--------------------|
 | Move        | A / D              |
+| Dash        | Double-tap A / D   |
 | Jump        | Space              |
 | Punch       | Left mouse         |
 | Kick        | F                  |
+| Special     | Q (meter full)     |
 | Block       | Hold right mouse   |
 | Use ability | E                  |
 
@@ -24,6 +26,18 @@ Menus: mouse, or Left/Right (A/D) + Enter on the fighter select screen; Esc goes
 - The guard takes 0.1 s to come up, so block before the hit arrives.
 - Only hits from the front are blocked; a blocked hit still deals 20% chip damage.
 - Double Damage hits are reduced to chip damage too, and a blocked punch never triggers Ice Strike.
+
+## Special meter and cyber uppercut
+
+- The magenta bar under your stamina bar is the special meter. It fills when you land hits and when you take damage.
+- When it's full it pulses and chimes: press Q for the cyber uppercut, a big hit that launches the opponent into the air.
+- It uses the whole meter. Blocked, it only does chip damage, so don't throw it into a guard.
+
+## Dash
+
+- Double-tap A or D to dash that way: a quick burst along the ground with an afterimage trail.
+- About 1 s cooldown. You can't attack mid-dash, and a backdash keeps you facing your opponent.
+- The CPU dashes too: to close the distance and to dodge your attacks (Hard does both a lot more).
 
 ## Opponents
 

@@ -1,8 +1,10 @@
 using UnityEngine;
 
 // Shared fighter logic for both the player and the AI.
-// Input controllers (PlayerInputController / AIController) only call SetMoveInput, Face and Jump
-// here, and Punch / Kick on FighterCombat.
+// Input controllers (PlayerInputController / AIController) only call SetMoveInput, Face, Jump and Dash
+// here, and Punch / Kick / Special on FighterCombat.
+// Dash: a short, fast burst along the ground with a cooldown. It keeps the current facing, can't start
+// while movement is locked (attacking, stunned, guarding) and a hit cuts it short.
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class Fighter : MonoBehaviour
 {
@@ -10,6 +12,13 @@ public class Fighter : MonoBehaviour
     [SerializeField] float moveSpeed = 7f;
     [SerializeField] float jumpVelocity = 12f;
     [SerializeField] float jumpStaminaCost = 8f;
+
+    [Header("Dash")]
+    [SerializeField] float dashSpeed = 17f;
+    [Tooltip("Seconds the dash lasts.")]
+    [SerializeField] float dashTime = 0.16f;
+    [Tooltip("Seconds after a dash ends before the next one can start.")]
+    [SerializeField] float dashCooldown = 1f;
 
     [Header("Ground Check")]
     [SerializeField] LayerMask groundLayer;
@@ -22,14 +31,21 @@ public class Fighter : MonoBehaviour
     bool jumpRequested;
     float slowMultiplier = 1f;
     float slowTimer;
+    int dashDirection;
+    float dashTimer;
+    float dashCooldownTimer;
 
     public bool IsGrounded { get; private set; }
     public int FacingDirection { get; private set; } = 1;
     // Set by FighterCombat while attacking, stunned or knocked out.
     public bool MovementLocked { get; set; }
     public bool IsSlowed => slowTimer > 0f;
+    public bool IsDashing => dashTimer > 0f;
+    public bool CanDash => !IsDashing && dashCooldownTimer <= 0f && !MovementLocked && IsGrounded;
 
     public event System.Action Slowed;
+    // Raised when a dash starts, with its direction (-1 or 1).
+    public event System.Action<int> Dashed;
 
     void Awake()
     {
@@ -62,6 +78,23 @@ public class Fighter : MonoBehaviour
             SetFacing(direction > 0 ? 1 : -1);
     }
 
+    // Dashes left (-1) or right (1) along the ground. Ignored while airborne, locked or on cooldown.
+    public void Dash(int direction)
+    {
+        if (direction == 0 || !CanDash) return;
+        dashDirection = direction > 0 ? 1 : -1;
+        dashTimer = dashTime;
+        Dashed?.Invoke(dashDirection);
+    }
+
+    // Ends a dash early, e.g. when hit. The cooldown still applies.
+    public void CancelDash()
+    {
+        if (!IsDashing) return;
+        dashTimer = 0f;
+        dashCooldownTimer = dashCooldown;
+    }
+
     // Sets velocity directly, e.g. for a knockback. Keeps its horizontal momentum until it lands.
     public void Launch(Vector2 velocity)
     {
@@ -80,8 +113,18 @@ public class Fighter : MonoBehaviour
     {
         IsGrounded = CheckGrounded();
         if (slowTimer > 0f) slowTimer -= Time.fixedDeltaTime;
+        if (dashCooldownTimer > 0f) dashCooldownTimer -= Time.fixedDeltaTime;
 
         Vector2 velocity = rb.linearVelocity;
+        if (IsDashing)
+        {
+            dashTimer -= Time.fixedDeltaTime;
+            if (dashTimer <= 0f) dashCooldownTimer = dashCooldown;
+            velocity.x = IsDashing ? dashDirection * dashSpeed * (IsSlowed ? slowMultiplier : 1f) : 0f;
+            rb.linearVelocity = velocity;
+            jumpRequested = false;
+            return; // no steering, jumping or turning mid-dash
+        }
         if (!MovementLocked)
             velocity.x = moveInput * moveSpeed * (IsSlowed ? slowMultiplier : 1f);
         else if (IsGrounded && velocity.y <= 0.01f)

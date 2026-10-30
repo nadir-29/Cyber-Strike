@@ -17,6 +17,8 @@ Backdrop is 16:9 and meant for 30 pixels per unit (12 x 21.3 units).
 Fighter sheet rows, top to bottom: idle(4) walk(6) jump(2) punch(3) kick(3) hurt(2).
 KO strips (fighter_<who>_ko.png, 192x64): reel(flash), flung, limp (visor off).
 Block strips (fighter_<who>_block.png, 192x64): raise guard, hold guard, impact recoil.
+Special strips (fighter_<who>_special.png, 256x64): cyber uppercut charge, rise, apex (fist ablaze), recover.
+Dash strips (fighter_<who>_dash.png, 128x64): two low lunge frames with the arms swept back.
 Victory strips (fighter_<who>_win.png, 512x64): 4 intro frames played once, then a 4-frame loop; a unique
   pose per personality (rocker fist + headbang, punk cocky beckon, enforcer salute, cyborg point + eye flare).
 Assets/Art/VFX/block_shield.png: cyan hex-energy shield shown in front of a fighter when a hit is blocked.
@@ -536,9 +538,10 @@ GUARD = dict(fa=40, ff=160, ba=20, bf=150)
 
 
 def pose(**kw):
+    # glow: neon charge around the front fist (1 = sparks, 2 = full ring), for the uppercut.
     # Victory-only face details: grin (0 / 1 / 2 = tongue out), glint (visor sparkle x offset), eyes (0-2 flare).
     p = dict(lean=5, ft=18, fs=-6, bt=-16, bs=4, grounded=True, hip_y=38, head=0, flash=False, dazed=False,
-             grin=0, glint=None, eyes=0)
+             grin=0, glint=None, eyes=0, glow=0)
     p.update(GUARD)
     p.update(kw)
     return p
@@ -587,6 +590,26 @@ def block_frames():
         pose(lean=0, fa=70, ff=130, ba=55, bf=120, **stance),
         pose(lean=-4, fa=105, ff=172, ba=88, bf=168, **stance),
         pose(lean=-12, head=-1, fa=112, ff=-178, ba=96, bf=176, ft=30, fs=-26, bt=-36, bs=8, hip_y=40),
+    ]
+
+
+def special_frames():
+    """Cyber uppercut: crouched charge with the fist low, rising swing, airborne apex with the fist
+    blazing overhead, then the recovery as it drops."""
+    return [
+        pose(lean=14, hip_y=42, ft=44, fs=-34, bt=-34, bs=16, fa=-20, ff=20, ba=50, bf=150, glow=1),
+        pose(lean=6, hip_y=40, ft=26, fs=-14, bt=-26, bs=6, fa=95, ff=150, ba=-30, bf=-10, glow=2),
+        pose(grounded=False, hip_y=37, lean=-6, ft=70, fs=-20, bt=-8, bs=4, fa=150, ff=176, ba=-50, bf=-80,
+             glow=2),
+        pose(grounded=False, hip_y=38, lean=-2, ft=30, fs=0, bt=-14, bs=-6, fa=110, ff=150, ba=-30, bf=-40, glow=1),
+    ]
+
+
+def dash_frames():
+    """Dash: low forward lunge with the arms swept back, legs stretched in a long stride."""
+    return [
+        pose(lean=26, hip_y=40, ft=55, fs=20, bt=-55, bs=-30, fa=-70, ff=-40, ba=-95, bf=-60),
+        pose(lean=28, hip_y=41, ft=62, fs=30, bt=-60, bs=-38, fa=-80, ff=-50, ba=-100, bf=-70),
     ]
 
 
@@ -728,6 +751,7 @@ def draw_fighter(pal, p):
         r = 2 + limb
         d.ellipse([hx - r, hy - r, hx + r, hy + r], fill=glove)
         d.point(ipt(step(hand, fore_angle, 1.5)), fill=glow)
+        return hand
 
     side = (math.cos(lean), math.sin(lean))
     def off(pt, s):
@@ -867,15 +891,26 @@ def draw_fighter(pal, p):
             d.point((hx + 6, hy - 1), fill=pal["accent_hi"])
 
     if "cyber" in pal:  # the front arm is the cyber arm
-        arm(p["fa"], p["ff"], pal["cyber"], pal["cyber_hi"], pal["accent_hi"], cyber=True)
+        fist = arm(p["fa"], p["ff"], pal["cyber"], pal["cyber_hi"], pal["accent_hi"], cyber=True)
     else:
-        arm(p["fa"], p["ff"], pal.get("sleeve", pal["jacket"]), pal["glove"], pal["accent_hi"])
+        fist = arm(p["fa"], p["ff"], pal.get("sleeve", pal["jacket"]), pal["glove"], pal["accent_hi"])
     if bulk:  # pauldron over the front shoulder
         sx, sy = ipt(shoulder)
         r = 2 + bulk
         d.ellipse([sx - r, sy - r, sx + r, sy + r - 1], fill=pal["jacket_hi"])
         d.line([sx - r + 1, sy + r - 1, sx + r - 1, sy + r - 1], fill=pal["jacket_dark"])
         d.point((sx + 1, sy), fill=pal["accent"])
+
+    if p["glow"]:  # neon charge: a pink ring with cyan sparks around the fist (drawn after the outline pass)
+        fx, fy = ipt(fist)
+        charge = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        cd = ImageDraw.Draw(charge)
+        if p["glow"] >= 2:
+            cd.ellipse([fx - 5, fy - 5, fx + 5, fy + 5], outline=PINK + (255,))
+            cd.ellipse([fx - 3, fy - 3, fx + 3, fy + 3], outline=(255, 210, 240, 255))
+        for sx, sy in ((-4, -2), (3, -5), (5, 2), (-2, 5)) if p["glow"] >= 2 else ((-3, -2), (3, -3)):
+            cd.point((fx + sx, fy + sy), fill=CYAN + (255,))
+        cd.point((fx, fy), fill=(255, 255, 255, 255))
 
     # 1px dark outline.
     alpha = img.getchannel("A")
@@ -884,6 +919,9 @@ def draw_fighter(pal, p):
     outline.putalpha(grown)
     outline.alpha_composite(img)
     img = outline
+
+    if p["glow"]:
+        img.alpha_composite(charge)
 
     if p["flash"]:
         white = Image.new("RGBA", img.size, (255, 255, 255, 0))
@@ -912,6 +950,14 @@ def make_ko_strip(pal, frames=None):
 
 def make_block_strip(pal):
     return make_ko_strip(pal, block_frames())
+
+
+def make_special_strip(pal):
+    return make_ko_strip(pal, special_frames())
+
+
+def make_dash_strip(pal):
+    return make_ko_strip(pal, dash_frames())
 
 
 def make_win_strip(pal):
@@ -984,6 +1030,8 @@ def make_opponents(out):
         make_ko_strip(pal).save(out / f"fighter_{oid}_ko.png")
         make_block_strip(pal).save(out / f"fighter_{oid}_block.png")
         make_win_strip(pal).save(out / f"fighter_{oid}_win.png")
+        make_special_strip(pal).save(out / f"fighter_{oid}_special.png")
+        make_dash_strip(pal).save(out / f"fighter_{oid}_dash.png")
         make_portrait(pal).save(out / f"portrait_{oid}.png")
 
 
@@ -1099,6 +1147,9 @@ def main():
     make_block_strip(AI_PALETTE).save(ART / "Fighters" / "fighter_ai_block.png")
     make_win_strip(PLAYER_PALETTE).save(ART / "Fighters" / "fighter_player_win.png")
     make_win_strip(AI_PALETTE).save(ART / "Fighters" / "fighter_ai_win.png")
+    for who, pal in (("player", PLAYER_PALETTE), ("ai", AI_PALETTE)):
+        make_special_strip(pal).save(ART / "Fighters" / f"fighter_{who}_special.png")
+        make_dash_strip(pal).save(ART / "Fighters" / f"fighter_{who}_dash.png")
     make_opponents(ART / "Fighters" / "Opponents")
     (ART / "VFX").mkdir(parents=True, exist_ok=True)
     make_block_shield().save(ART / "VFX" / "block_shield.png")
@@ -1142,6 +1193,11 @@ def main():
         for i, pal in enumerate(pals):
             wins.alpha_composite(make_win_strip(pal), (0, FRAME * i))
         wins.resize((wins.width * 3, wins.height * 3), Image.NEAREST).save(out / "win_preview.png")
+        moves = Image.new("RGBA", (FRAME * 6, FRAME * len(pals)), (60, 60, 70, 255))
+        for i, pal in enumerate(pals):
+            moves.alpha_composite(make_special_strip(pal), (0, FRAME * i))
+            moves.alpha_composite(make_dash_strip(pal), (FRAME * 4, FRAME * i))
+        moves.resize((moves.width * 3, moves.height * 3), Image.NEAREST).save(out / "moves_preview.png")
 
 
 if __name__ == "__main__":

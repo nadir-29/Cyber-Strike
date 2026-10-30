@@ -12,6 +12,7 @@ public class OpponentLoader : MonoBehaviour
     [SerializeField] AIController ai;
     [SerializeField] Health health;
     [SerializeField] FighterCombat combat;
+    [SerializeField] AfterimageTrail trail;
 
     [Header("HUD")]
     [SerializeField] PixelText nameLabel;
@@ -28,6 +29,7 @@ public class OpponentLoader : MonoBehaviour
 
         Opponent = roster.SelectedOrDefault;
         if (skin != null) skin.SetSkin(Opponent.sprites);
+        if (trail != null) trail.DashColor = Opponent.accent;
 
         AIProfile profile = Opponent.aiProfile;
         if (profile != null)

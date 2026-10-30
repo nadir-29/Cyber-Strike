@@ -14,6 +14,8 @@ public class FighterAnimator : MonoBehaviour
     static readonly int BlockingHash = Animator.StringToHash("Blocking");
     static readonly int BlockHitHash = Animator.StringToHash("BlockHit");
     static readonly int WinHash = Animator.StringToHash("Win");
+    static readonly int SpecialHash = Animator.StringToHash("Special");
+    static readonly int DashingHash = Animator.StringToHash("Dashing");
 
     Fighter fighter;
     FighterCombat combat;
@@ -54,11 +56,17 @@ public class FighterAnimator : MonoBehaviour
         animator.SetFloat(VelocityYHash, velocity.y);
         animator.SetBool(DeadHash, health != null && health.IsDead);
         animator.SetBool(BlockingHash, combat != null && combat.IsGuarding);
+        animator.SetBool(DashingHash, fighter.IsDashing);
     }
 
     void OnAttackStarted(AttackType type)
     {
-        animator.SetTrigger(type == AttackType.Punch ? PunchHash : KickHash);
+        animator.SetTrigger(type switch
+        {
+            AttackType.Punch => PunchHash,
+            AttackType.Kick => KickHash,
+            _ => SpecialHash,
+        });
     }
 
     // Strikes the victory pose (one-shot intro, then a loop) and holds it for the rest of the match.
@@ -67,6 +75,7 @@ public class FighterAnimator : MonoBehaviour
     {
         animator.ResetTrigger(PunchHash);
         animator.ResetTrigger(KickHash);
+        animator.ResetTrigger(SpecialHash);
         animator.ResetTrigger(HurtHash);
         animator.ResetTrigger(BlockHitHash);
         animator.SetTrigger(WinHash);
@@ -78,6 +87,7 @@ public class FighterAnimator : MonoBehaviour
     {
         animator.ResetTrigger(PunchHash);
         animator.ResetTrigger(KickHash);
+        animator.ResetTrigger(SpecialHash);
         animator.SetTrigger(HurtHash);
     }
 }

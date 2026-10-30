@@ -29,9 +29,11 @@
 | Action      | Input         |
 |-------------|---------------|
 | Move        | A / D         |
+| Dash        | Double-tap A / D |
 | Jump        | Space         |
 | Punch       | Left mouse    |
 | Kick        | F             |
+| Special (cyber uppercut) | Q (meter full) |
 | Block       | Hold right mouse |
 | Use ability | E             |
 
@@ -53,6 +55,21 @@
 - Ice Strike: a blocked punch does not slow and does not use up the armed Ice Strike; the next punch that lands does.
 - Feedback: block pose (raise / hold) and an impact recoil frame, a cyan energy shield flash in front of the defender (`BlockVisuals`), cyan deflect sparks with a light hit-pause (`CombatFeedback`) and a "deflect" SFX instead of the hit sound.
 
+### Special meter and cyber uppercut
+
+- Each fighter has a special meter (`SpecialMeter`, 0–100) shown as a magenta bar under its stamina bar (`SpecialBar`). It fills from damage dealt (2 per point, hits that land) and damage taken (1.5 per point, including blocked chip damage). The uppercut itself builds no meter for its user.
+- Full meter: the bar flashes white, then pulses, and a "ready" chime plays.
+- Q (meter full, on the ground, free to act) spends the whole meter on the cyber uppercut (`FighterCombat.Special`, `AttackType.Special`): 22 damage (x Double Damage / damage bonus), the attacker hops up with it, and a clean hit launches the target up and away into a 0.75 s hit stun. Startup 0.16 s, active 0.14 s, recovery 0.3 s; one hit per swing.
+- Blocked from the front it is chip damage only (20%), no launch, no stun, like any blocked hit.
+- Feedback: charged-fist uppercut animation, pink afterimages and a fountain of neon sparks from the fist (`AfterimageTrail`), a big pink/cyan burst with a pillar of streaks, heavy shake and a 0.11 s hit-pause on hit (`CombatFeedback`), `special.wav` on use and `special_hit.wav` instead of the hit sound.
+
+### Dash
+
+- Double-tap A or D (within 0.25 s) to dash that way: 17 u/s for 0.16 s (~2.7 units) along the ground, keeping the current facing (so a backdash keeps facing the opponent). 1 s cooldown after it ends.
+- Ground only, and not while attacking, stunned or guarding. No attacking, jumping, steering or guarding mid-dash. Getting hit cuts it short.
+- Feedback: dash lunge animation, afterimage trail (P1 cyan, the CPU in its opponent's accent colour, set by `OpponentLoader`), `dash.wav`.
+- The rule lives in `Fighter.Dash`; `PlayerInputController` only detects the double-tap.
+
 ### Stamina
 
 - Each fighter has 100 stamina and a stamina bar under its health bar.
@@ -72,16 +89,18 @@
 ### AI
 
 - Approaches the player, attacks when in range, and goes for pickups.
+- Special: fires the uppercut when its meter is full. A smart AI waits until the player is in range and not guarding; a careless one also throws it into a guard or from a bit too far and whiffs. Easy is careless and hesitant, Hard fires almost every time it has a clean opening.
+- Dash: dashes in when approaching the player or a pickup from more than 4 units away, and may dash away (dodge) from an attack the player starts in front of it, twice as likely against the special. A dodge waits up to 0.3 s for the AI to be free to dash, then gives up.
 - Blocks: may raise its guard (after its block reaction time) when the player starts an attack in front of it, after taking a hit, or pre-emptively while waiting to attack. It drops the guard after its hold time and then waits out a cooldown, so it never blocks forever. Easy rarely blocks, Medium sometimes, Hard often and fast.
-- Difficulty comes from an `AIProfile` ScriptableObject per opponent: reaction delay, attack frequency, retreat chances, how fast it notices pickups, how smartly it uses abilities, blocking (chance, reaction time, hold time, cooldown), plus an HP / damage bonus. `AIController` only reads the profile; the stat bonus is applied to `Health` / `FighterCombat` by `OpponentLoader`.
+- Difficulty comes from an `AIProfile` ScriptableObject per opponent: reaction delay, attack frequency, retreat chances, how fast it notices pickups, how smartly it uses abilities, blocking (chance, reaction time, hold time, cooldown), special use (chance, smarts), dashing (dash-in chance, dodge chance), plus an HP / damage bonus. `AIController` only reads the profile; the stat bonus is applied to `Health` / `FighterCombat` by `OpponentLoader`.
 
 ### CPU opponents (fighter select = difficulty)
 
 | Difficulty | Name        | Look                                              | Profile highlights                                   |
 |------------|-------------|---------------------------------------------------|------------------------------------------------------|
-| Easy (1★)  | JINX VALE   | Street punk rookie: pink/green mohawk, tank top, tattoos, lime shades | Slow reactions, hesitant, retreats often, careless abilities, rarely blocks (10%, slow) |
-| Medium (2★)| SGT. HALDEN | Corporate security enforcer: slate armor, sealed helmet, amber visor | The original AI tuning, blocks sometimes (55%, 0.08–0.18 s) |
-| Hard (3★)  | OBSIDIAN    | Elite cyborg assassin: bulky gunmetal armor, back unit, skull cap, red eyes | Near-instant reactions, relentless, smart abilities, blocks often and fast (70%, 0.02–0.07 s), +15 HP, 1.1x damage |
+| Easy (1★)  | JINX VALE   | Street punk rookie: pink/green mohawk, tank top, tattoos, lime shades | Slow reactions, hesitant, retreats often, careless abilities, rarely blocks (10%, slow), careless special (35% / smarts 0.15), rarely dashes (10% in, 4% dodge) |
+| Medium (2★)| SGT. HALDEN | Corporate security enforcer: slate armor, sealed helmet, amber visor | The original AI tuning, blocks sometimes (55%, 0.08–0.18 s), special 60% / smarts 0.6, dashes 25% in, 12% dodge |
+| Hard (3★)  | OBSIDIAN    | Elite cyborg assassin: bulky gunmetal armor, back unit, skull cap, red eyes | Near-instant reactions, relentless, smart abilities, blocks often and fast (70%, 0.02–0.07 s), smart special (90% / smarts 0.95), dashes 40% in, 25% dodge, +15 HP, 1.1x damage |
 
 - Data: `Assets/Data/Opponents/` holds `OpponentRoster`, one `OpponentData` (name, bio, stars, portrait, accent, sprites, AI profile) and one `AIProfile` per opponent.
 - Art: `Tools/generate_art.py` draws each opponent in the shared fighter style (`OPPONENT_PALETTES`) into `Assets/Art/Fighters/Opponents/` (sheet, KO strip, portrait). Sheets use the same slicing as `fighter_ai.png`.
@@ -100,14 +119,14 @@
 ### Art and audio
 
 - Player look (`PLAYER_PALETTE`, style "rocker" in `Tools/generate_art.py`): original long-haired rocker merc with shoulder-length black hair, red-lensed aviators, stubble, black armored vest over bare arms, studded belt, brown leather pants and a gunmetal cyber arm (front arm) lit with the P1 cyan.
-- Animations: idle, walk, jump, punch, kick, hurt, block (+ block impact), KO, victory.
+- Animations: idle, walk, jump, punch, kick, special (cyber uppercut: charge, rise, apex with the fist ablaze, recover; `fighter_<who>_special.png`), dash (2-frame lunge loop; `fighter_<who>_dash.png`), hurt, block (+ block impact), KO, victory. Opponents' `OpponentData.sprites` include their special and dash strips.
 - Victory poses (`fighter_<who>_win.png`, 8 frames: 4 intro played once by `Win`, 4 looped by `WinLoop`; fired by the `Win` animator trigger via `FighterAnimator.PlayVictory`), one per personality (`victory_frames` in `Tools/generate_art.py`):
   - Player (rocker): wind-up, cyber fist thrown at the sky, then headbangs while air-guitaring with the other hand.
   - JINX VALE (cocky): open-armed shrug, a hop with arms in a V, then a "come on" beckon with one hand behind the head, grinning (tongue out every other beat).
   - SGT. HALDEN (stiff, professional): snaps to attention, then a crisp salute held motionless while a glint sweeps the visor.
   - OBSIDIAN (cold, menacing): points at the fallen foe as the red eyes flare, then a clenched fist at the chest, eyes pulsing, a slight head tilt.
   - The CPU's base sheet has a plain fist pump; opponents get theirs through `FighterSkin` (their `OpponentData.sprites` include the win strip).
-- SFX: punch, kick, hit, deflect (blocked hit), pickup, ability, win/loss, neon buzz; plus a looping rain ambience (see Atmosphere).
+- SFX: punch, kick, hit, deflect (blocked hit), special (uppercut wind-up), special hit, special ready (meter full), dash, pickup, ability, win/loss, neon buzz; plus a looping rain ambience (see Atmosphere).
 - UI SFX (`Assets/Audio/UI/`, generated by `Tools/generate_sfx.py`): a soft hover blip and a click confirm, quieter than combat. Every menu button (Title Start/Quit, Fighter Select cards/Back, Win/Loss Restart/Menu) has a `UIButtonSound`: hover plays once per enter, click/Enter confirms, missing clips are skipped. Sounds play through `AudioManager.PlayUI`, a persistent `DontDestroyOnLoad` source, so a click that loads a scene is still heard. Fighter Select drives card hover/click sounds from its keyboard highlight.
 - `README.md` also lists the controls; keep it in sync with the Controls table.
 - No music.

@@ -1,7 +1,8 @@
 using UnityEngine;
 
 // Hit juice: a neon spark burst, a tiny screen shake and a short hit-pause whenever an attack lands,
-// and a lighter cyan deflect burst when a guard stops one.
+// and a lighter cyan deflect burst when a guard stops one. The cyber uppercut gets its own big neon
+// burst: a hot core, a pink/cyan ring and a pillar of streaks shooting up, a heavy shake and a longer pause.
 // Listens to FighterCombat.HitLanded and Blocked; no gameplay rules here.
 public class CombatFeedback : MonoBehaviour
 {
@@ -26,6 +27,15 @@ public class CombatFeedback : MonoBehaviour
     [SerializeField] Color coreColor = new Color(1f, 1f, 1f);
     [SerializeField] int punchSparks = 9;
     [SerializeField] int kickSparks = 13;
+
+    [Header("Cyber Uppercut")]
+    [SerializeField] float specialHitPause = 0.11f;
+    [SerializeField] float specialShake = 0.2f;
+    [SerializeField] float specialShakeTime = 0.3f;
+    [SerializeField] Color specialSparkA = new Color(1f, 0.25f, 0.75f);
+    [SerializeField] Color specialSparkB = new Color(0.25f, 0.95f, 1f);
+    [SerializeField] int specialRing = 22;
+    [SerializeField] int specialPillar = 16;
 
     [Header("Blocked Hits")]
     [SerializeField] Color deflectSpark = new Color(0.25f, 0.95f, 1f);
@@ -52,6 +62,14 @@ public class CombatFeedback : MonoBehaviour
     void OnHitLanded(FighterCombat.HitInfo hit)
     {
         bool knockout = hit.target.IsDead;
+        if (hit.type == AttackType.Special)
+        {
+            SpecialBurst(hit);
+            if (cameraShake != null)
+                cameraShake.Shake(Mathf.Max(specialShake, knockout ? knockoutShake : 0f), knockout ? knockoutShakeTime : specialShakeTime);
+            Pause(Mathf.Max(specialHitPause, knockout ? knockoutHitPause : 0f));
+            return;
+        }
         bool kick = hit.type == AttackType.Kick;
 
         Sparks(hit, kick);
@@ -106,6 +124,33 @@ public class CombatFeedback : MonoBehaviour
             float speed = Random.Range(3f, 9f) * speedScale;
             Color c = Color.Lerp(color, coreColor, Random.Range(0f, 0.5f));
             particles.Emit(hit.point, dir * speed, c, Random.Range(0.12f, 0.28f), 1f, 12f, 4f, true);
+        }
+    }
+
+    void SpecialBurst(FighterCombat.HitInfo hit)
+    {
+        PixelParticles particles = PixelParticles.Instance;
+        if (particles == null) return;
+
+        for (int i = 0; i < 8; i++)
+            particles.Emit(hit.point + Random.insideUnitCircle * 0.15f, Vector2.zero, coreColor, 0.1f, 4f);
+
+        // Ring of neon streaks in every direction.
+        for (int i = 0; i < specialRing; i++)
+        {
+            float angle = (i + Random.value) / specialRing * Mathf.PI * 2f;
+            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            Color c = Color.Lerp(i % 2 == 0 ? specialSparkA : specialSparkB, coreColor, Random.Range(0f, 0.4f));
+            particles.Emit(hit.point, dir * Random.Range(6f, 12f), c, Random.Range(0.15f, 0.3f), 1f, 6f, 5f, true);
+        }
+
+        // Pillar of streaks shooting up after the launched target.
+        for (int i = 0; i < specialPillar; i++)
+        {
+            Vector2 dir = new Vector2(Random.Range(-0.25f, 0.25f) + 0.2f * hit.direction, 1f).normalized;
+            Color c = Color.Lerp(i % 2 == 0 ? specialSparkB : specialSparkA, coreColor, Random.Range(0f, 0.5f));
+            particles.Emit(hit.point + new Vector2(Random.Range(-0.2f, 0.2f), 0f), dir * Random.Range(8f, 16f), c,
+                           Random.Range(0.2f, 0.4f), 1f, 4f, 2f, true);
         }
     }
 

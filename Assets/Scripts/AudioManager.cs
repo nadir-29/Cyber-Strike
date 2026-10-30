@@ -44,6 +44,13 @@ public class AudioManager : MonoBehaviour
     [SerializeField] AudioClip hit;
     [Tooltip("A hit stopped by a guard.")]
     [SerializeField] AudioClip deflect;
+    [Tooltip("Cyber uppercut wind-up.")]
+    [SerializeField] AudioClip special;
+    [Tooltip("Cyber uppercut landing (replaces the hit sound).")]
+    [SerializeField] AudioClip specialHit;
+    [Tooltip("Special meter just filled.")]
+    [SerializeField] AudioClip specialReady;
+    [SerializeField] AudioClip dash;
     [SerializeField] AudioClip pickup;
     [SerializeField] AbilitySound[] abilitySounds;
     [SerializeField] AudioClip win;
@@ -53,6 +60,9 @@ public class AudioManager : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float attackVolume = 0.5f;
     [SerializeField, Range(0f, 1f)] float hitVolume = 0.9f;
     [SerializeField, Range(0f, 1f)] float pickupVolume = 0.7f;
+    [SerializeField, Range(0f, 1f)] float specialVolume = 0.85f;
+    [SerializeField, Range(0f, 1f)] float readyVolume = 0.5f;
+    [SerializeField, Range(0f, 1f)] float dashVolume = 0.45f;
     [SerializeField, Range(0f, 1f)] float abilityVolume = 0.8f;
     [Tooltip("Ice Strike sound replayed when its slow lands.")]
     [SerializeField, Range(0f, 1f)] float freezeVolume = 0.45f;
@@ -101,25 +111,40 @@ public class AudioManager : MonoBehaviour
         FighterCombat combat = Get<FighterCombat>(fighter);
         FighterAbilities abilities = Get<FighterAbilities>(fighter);
         Fighter movement = Get<Fighter>(fighter);
+        SpecialMeter meter = Get<SpecialMeter>(fighter);
 
         if (subscribe)
         {
             if (combat != null) { combat.AttackStarted += OnAttackStarted; combat.HitLanded += OnHitLanded; combat.Blocked += OnBlocked; }
             if (abilities != null) { abilities.PickedUp += OnPickedUp; abilities.Used += OnAbilityUsed; }
-            if (movement != null) movement.Slowed += OnSlowed;
+            if (movement != null) { movement.Slowed += OnSlowed; movement.Dashed += OnDashed; }
+            if (meter != null) meter.Filled += OnMeterFilled;
         }
         else
         {
             if (combat != null) { combat.AttackStarted -= OnAttackStarted; combat.HitLanded -= OnHitLanded; combat.Blocked -= OnBlocked; }
             if (abilities != null) { abilities.PickedUp -= OnPickedUp; abilities.Used -= OnAbilityUsed; }
-            if (movement != null) movement.Slowed -= OnSlowed;
+            if (movement != null) { movement.Slowed -= OnSlowed; movement.Dashed -= OnDashed; }
+            if (meter != null) meter.Filled -= OnMeterFilled;
         }
     }
 
     static T Get<T>(GameObject go) where T : Component => go != null ? go.GetComponent<T>() : null;
 
-    void OnAttackStarted(AttackType type) => Play(type == AttackType.Punch ? punch : kick, attackVolume, true);
-    void OnHitLanded(FighterCombat.HitInfo info) => Play(hit, hitVolume, true);
+    void OnAttackStarted(AttackType type)
+    {
+        if (type == AttackType.Special) Play(special, specialVolume, false);
+        else Play(type == AttackType.Punch ? punch : kick, attackVolume, true);
+    }
+
+    void OnHitLanded(FighterCombat.HitInfo info)
+    {
+        if (info.type == AttackType.Special && !info.blocked) Play(specialHit, specialVolume, false);
+        else Play(hit, hitVolume, true);
+    }
+
+    void OnDashed(int direction) => Play(dash, dashVolume, true);
+    void OnMeterFilled() => Play(specialReady, readyVolume, false);
     void OnBlocked(FighterCombat.HitInfo info) => Play(deflect, hitVolume, true);
     void OnPickedUp(AbilityType type) => Play(pickup, pickupVolume, false);
     void OnAbilityUsed(AbilityType type) => Play(AbilityClip(type), abilityVolume, false);

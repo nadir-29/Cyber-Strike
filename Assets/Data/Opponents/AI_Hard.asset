@@ -27,5 +27,9 @@ MonoBehaviour:
   blockReactionTime: {x: 0.02, y: 0.07}
   blockHoldTime: {x: 0.4, y: 0.8}
   blockCooldown: 0.5
+  specialChance: 0.9
+  specialSmarts: 0.95
+  dashInChance: 0.4
+  dodgeChance: 0.25
   bonusHealth: 15
   damageMultiplier: 1.1

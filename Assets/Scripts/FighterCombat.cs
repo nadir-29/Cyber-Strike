@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum AttackType { Punch, Kick }
+public enum AttackType { Punch, Kick, Special }
 
 // Attacks, hitboxes, blocking and hit reactions shared by the player and the AI.
-// Input controllers only call Punch(), Kick() and SetBlock(). Damage is multiplied by FighterAbilities (Double Damage).
+// Input controllers only call Punch(), Kick(), Special() and SetBlock(). Damage is multiplied by FighterAbilities (Double Damage).
+// Special: the cyber uppercut. Needs a full SpecialMeter (spent on use) and the ground; the fighter hops up with it and a
+// clean hit launches the target into a long hit stun. Blocked, it is chip damage like any other hit.
+// No attacking or guarding mid-dash; a hit cuts a dash short.
 // Blocking: while the block input is held the fighter is locked in place (no move, jump or attack). After a short
 // startup the guard stops hits from the front: they deal chip damage only, cause no stun and never trigger Ice Strike.
 // Hits from behind land normally.
@@ -41,6 +44,12 @@ public class FighterCombat : MonoBehaviour
         [Tooltip("Hitbox centre relative to the fighter, as if facing right.")]
         public Vector2 offset;
         public Vector2 size;
+        [Tooltip("Velocity a clean hit launches the target with (x away from the attacker); zero = no launch.")]
+        public Vector2 launch;
+        [Tooltip("Hit stun of a launched target, in seconds.")]
+        public float launchStun;
+        [Tooltip("Upward velocity the attacker hops with when the hitbox turns on; zero = stays grounded.")]
+        public float rise;
 
         public float Duration => startup + active + recovery;
     }
@@ -55,6 +64,13 @@ public class FighterCombat : MonoBehaviour
     {
         damage = 10, staminaCost = 18f, startup = 0.111f, active = 0.111f, recovery = 0.111f,
         offset = new Vector2(0.8f, -0.42f), size = new Vector2(0.85f, 0.45f),
+    };
+    // Timings match the 4-frame uppercut animation (charge, rise, apex, recover).
+    [SerializeField] Attack special = new Attack
+    {
+        damage = 22, staminaCost = 0f, startup = 0.16f, active = 0.14f, recovery = 0.3f,
+        offset = new Vector2(0.6f, 0.45f), size = new Vector2(0.95f, 1.4f),
+        launch = new Vector2(4f, 11f), launchStun = 0.75f, rise = 5f,
     };
 
     [Header("Hits")]
@@ -73,6 +89,7 @@ public class FighterCombat : MonoBehaviour
     Health health;
     Stamina stamina;
     FighterAbilities abilities;
+    SpecialMeter meter;
     Attack current;
     AttackType currentType;
     float attackTime;
@@ -83,6 +100,7 @@ public class FighterCombat : MonoBehaviour
     bool blockHeld;
     float guardTime;
     bool absorbing;
+    bool rose;
 
     // Multiplies all damage this fighter deals, e.g. an opponent's difficulty bonus.
     public float DamageScale { get; set; } = 1f;
@@ -91,7 +109,8 @@ public class FighterCombat : MonoBehaviour
     public bool IsGuarding { get; private set; }
     // Guard fully up: hits from the front are blocked.
     public bool IsBlocking => IsGuarding && guardTime >= blockStartup;
-    public bool CanAct => current == null && stunTime <= 0f && !health.IsDead && !IsGuarding;
+    public bool CanAct => current == null && stunTime <= 0f && !health.IsDead && !IsGuarding && !fighter.IsDashing;
+    public bool CanSpecial => CanAct && fighter.IsGrounded && meter != null && meter.IsFull;
 
     public event Action<AttackType> AttackStarted;
     public event Action HitTaken;
@@ -106,6 +125,7 @@ public class FighterCombat : MonoBehaviour
         health = GetComponent<Health>();
         stamina = GetComponent<Stamina>();
         abilities = GetComponent<FighterAbilities>();
+        meter = GetComponent<SpecialMeter>();
         hurtboxFilter = new ContactFilter2D();
         hurtboxFilter.SetLayerMask(hurtboxLayers);
 
@@ -128,6 +148,13 @@ public class FighterCombat : MonoBehaviour
     public void Punch() => StartAttack(punch, AttackType.Punch);
     public void Kick() => StartAttack(kick, AttackType.Kick);
 
+    // Cyber uppercut: only with a full special meter, from the ground.
+    public void Special()
+    {
+        if (!CanSpecial || !meter.TrySpend()) return;
+        StartAttack(special, AttackType.Special);
+    }
+
     // Hold to block. The guard goes up as soon as the fighter is free (not attacking, stunned or airborne).
     public void SetBlock(bool held) => blockHeld = held;
 
@@ -139,6 +166,7 @@ public class FighterCombat : MonoBehaviour
         current = attack;
         currentType = type;
         attackTime = 0f;
+        rose = false;
         hitThisSwing.Clear();
         UpdateMovementLock();
         AttackStarted?.Invoke(type);
@@ -156,6 +184,11 @@ public class FighterCombat : MonoBehaviour
         if (current == null) return;
 
         attackTime += Time.fixedDeltaTime;
+        if (attackTime >= current.startup && !rose)
+        {
+            rose = true;
+            if (current.rise > 0f) fighter.Launch(new Vector2(0f, current.rise));
+        }
         if (attackTime >= current.startup && attackTime < current.startup + current.active)
             CheckHits();
 
@@ -197,6 +230,8 @@ public class FighterCombat : MonoBehaviour
             target.TakeDamage(hit.damage, hit.direction);
             if (hit.type == AttackType.Punch && abilities != null)
                 abilities.OnPunchLanded(target);
+            if (defender != null && !target.IsDead && current.launch != Vector2.zero)
+                defender.LaunchFrom(hit.direction, current.launch, current.launchStun);
             HitLanded?.Invoke(hit);
         }
     }
@@ -226,9 +261,18 @@ public class FighterCombat : MonoBehaviour
         return hit;
     }
 
+    // Knocked into the air by a launcher: flies away from the hit and stays stunned for a while.
+    void LaunchFrom(int direction, Vector2 velocity, float stun)
+    {
+        stunTime = Mathf.Max(stunTime, stun);
+        UpdateMovementLock();
+        fighter.Launch(new Vector2(velocity.x * direction, velocity.y));
+    }
+
     void UpdateGuard()
     {
-        bool canGuard = blockHeld && current == null && stunTime <= 0f && !health.IsDead && fighter.IsGrounded;
+        bool canGuard = blockHeld && current == null && stunTime <= 0f && !health.IsDead && fighter.IsGrounded
+                        && !fighter.IsDashing;
         if (canGuard)
         {
             if (IsGuarding)
@@ -250,6 +294,7 @@ public class FighterCombat : MonoBehaviour
     void OnDamaged()
     {
         if (absorbing) return; // blocked chip damage: the guard holds, no stun
+        fighter.CancelDash();
         IsGuarding = false;
         current = null;
         stunTime = hitStun;
@@ -275,7 +320,7 @@ public class FighterCombat : MonoBehaviour
     void OnDrawGizmosSelected()
     {
         // Outline both hitboxes; fill the one that is currently live.
-        foreach (Attack attack in new[] { punch, kick })
+        foreach (Attack attack in new[] { punch, kick, special })
         {
             bool live = attack == current && attackTime >= attack.startup && attackTime < attack.startup + attack.active;
             Gizmos.color = live ? new Color(1f, 0.2f, 0.3f, 0.6f) : new Color(1f, 0.6f, 0.2f, 0.8f);
