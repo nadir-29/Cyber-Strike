@@ -279,12 +279,12 @@ def rain_loop():
         lo += 0.18 * (w - lo)    # one-pole lowpass ~700 Hz: the body of the rain
         hi += 0.6 * (w - hi)     # brighter hiss
         swell = 0.8 + 0.2 * sine(i / RATE / 3.0)  # period 3 s fits the 6 s loop twice
-        out.append((lo * 0.9 + (hi - lo) * 0.25) * swell)
+        out.append((lo * 0.9 + (hi - lo) * 0.12) * swell)
     # Droplet ticks: tiny falling sine blips.
     for _ in range(140):
         start = rng.randrange(total - 800)
         f0 = rng.uniform(1800, 4200)
-        vol = rng.uniform(0.04, 0.12)
+        vol = rng.uniform(0.03, 0.08)
         for k, s in enumerate(tone(0.03, sweep(f0, f0 * 0.6), sine, vol, attack=0.001, curve=3.0)):
             out[start + k] += s
     # Fold the extra tail over the head with an equal-power crossfade.

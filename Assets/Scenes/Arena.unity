@@ -1511,7 +1511,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AmbientLoop
   clip: {fileID: 8300000, guid: 62c1d3728bf94414093e5e53cc722e80, type: 3}
-  volume: 0.18
+  volume: 0.06
   fadeIn: 1.5
 --- !u!4 &404406095
 Transform:

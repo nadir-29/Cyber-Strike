@@ -5,7 +5,7 @@ using UnityEngine;
 public class AmbientLoop : MonoBehaviour
 {
     [SerializeField] AudioClip clip;
-    [SerializeField, Range(0f, 1f)] float volume = 0.18f;
+    [SerializeField, Range(0f, 1f)] float volume = 0.06f;
     [Tooltip("Real seconds to fade in from silence.")]
     [SerializeField] float fadeIn = 1.5f;
 
