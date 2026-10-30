@@ -33,6 +33,13 @@ Menus: mouse, or Left/Right (A/D) + Enter on the fighter select screen; Esc goes
 | Medium     | SGT. HALDEN | Corporate security enforcer       |
 | Hard       | OBSIDIAN    | Elite cyborg assassin (+HP, +dmg) |
 
+## Atmosphere
+
+The arena is drenched: two layers of pixel rain (faint and slow far away, brighter and faster up close)
+with tiny splashes on the alley floor, neon signs that now and then buzz, glitch or cut out (never all
+at once) with an electric hum, and a quiet looping rain ambience. There's no music.
+All of it stays behind the fighters and the HUD.
+
 ## Running
 
 Open the project in Unity and press Play; it always starts at the title screen.

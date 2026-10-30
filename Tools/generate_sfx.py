@@ -11,6 +11,8 @@ Outputs (Assets/Audio/)
   win.wav, lose.wav
 Outputs (Assets/Audio/UI/)
   ui_hover.wav (soft high blip), ui_click.wav (punchier confirm); both quiet, menu-only
+Outputs (Assets/Audio/Ambience/)
+  neon_buzz.wav (failing neon tube), rain_loop.wav (seamless 6 s rain bed, played quietly on loop)
 """
 import math
 import random
@@ -242,8 +244,60 @@ def ui_click():
     return mix(tick, notes)
 
 
+def neon_buzz():
+    """Electric buzz of a failing neon tube: a 120 Hz hum with harsh harmonics, chopped into
+    irregular bursts with a crackle on each re-strike. Short and quiet."""
+    rng = random.Random(9)
+    n = int(0.42 * RATE)
+    out, gate, crackle = [], 1.0, 0.0
+    for i in range(n):
+        t = i / RATE
+        if i % int(0.025 * RATE) == 0:  # re-roll the gate every 25 ms: tube sputtering
+            on = rng.random() < 0.7
+            if on and gate < 0.5:
+                crackle = 1.0
+            gate = 1.0 if on else 0.15
+        hum = 0.55 * saw(t * 120) + 0.25 * square(t * 240, 0.3) + 0.12 * sine(t * 1800)
+        crackle *= 0.995
+        s = hum * gate + rng.uniform(-1, 1) * (0.08 + 0.6 * crackle)
+        env = min(1.0, i / (0.01 * RATE)) * min(1.0, (n - i) / (0.06 * RATE))
+        out.append(s * env * 0.4)
+    return bitcrush(out, steps=20, hold=2)
+
+
+def rain_loop():
+    """Seamless 6 s rain bed (ambience, not music): soft hiss from filtered noise with slow
+    swells, plus sparse droplet ticks. The tail is crossfaded into the head so it loops cleanly."""
+    rng = random.Random(77)
+    seconds, fade = 6.0, 0.5
+    n, nf = int(seconds * RATE), int(fade * RATE)
+    total = n + nf
+    lo = hi = 0.0
+    out = []
+    for i in range(total):
+        w = rng.uniform(-1, 1)
+        lo += 0.18 * (w - lo)    # one-pole lowpass ~700 Hz: the body of the rain
+        hi += 0.6 * (w - hi)     # brighter hiss
+        swell = 0.8 + 0.2 * sine(i / RATE / 3.0)  # period 3 s fits the 6 s loop twice
+        out.append((lo * 0.9 + (hi - lo) * 0.25) * swell)
+    # Droplet ticks: tiny falling sine blips.
+    for _ in range(140):
+        start = rng.randrange(total - 800)
+        f0 = rng.uniform(1800, 4200)
+        vol = rng.uniform(0.04, 0.12)
+        for k, s in enumerate(tone(0.03, sweep(f0, f0 * 0.6), sine, vol, attack=0.001, curve=3.0)):
+            out[start + k] += s
+    # Fold the extra tail over the head with an equal-power crossfade.
+    loop = out[:n]
+    for i in range(nf):
+        a = i / nf
+        loop[i] = out[n + i] * math.cos(a * math.pi / 2) + out[i] * math.sin(a * math.pi / 2)
+    return loop
+
+
 def main():
     sounds = {
+        "Ambience/neon_buzz": neon_buzz, "Ambience/rain_loop": rain_loop,
         "punch": punch, "kick": kick, "hit": hit, "deflect": deflect, "pickup": pickup,
         "ability_double_damage": double_damage, "ability_healing": healing,
         "ability_steal": steal, "ability_ice_strike": ice_strike,

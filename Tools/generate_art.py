@@ -4,7 +4,7 @@ Run from the project root:  py Tools/generate_art.py [preview_dir]
 
 Outputs
   Assets/Art/Backdrop/backdrop_far.png   640x360, opaque  (teal haze, searchlights, tiered megacity)
-  Assets/Art/Backdrop/backdrop_mid.png   640x360, alpha   (near towers, holo screens)
+  Assets/Art/Backdrop/backdrop_mid.png   640x360, alpha   (near towers; the holo screens are separate signs)
   Assets/Art/Backdrop/backdrop_near.png  640x360, alpha   (alley walls, pipes, dumpster, puddles)
   Assets/Art/Fighters/fighter_player.png 384x384 sheet of 64x64 frames
   Assets/Art/Fighters/fighter_ai.png     same layout, opponent colors
@@ -18,6 +18,8 @@ Fighter sheet rows, top to bottom: idle(4) walk(6) jump(2) punch(3) kick(3) hurt
 KO strips (fighter_<who>_ko.png, 192x64): reel(flash), flung, limp (visor off).
 Block strips (fighter_<who>_block.png, 192x64): raise guard, hold guard, impact recoil.
 Assets/Art/VFX/block_shield.png: cyan hex-energy shield shown in front of a fighter when a hit is blocked.
+Assets/Art/Backdrop/Signs/sign_<name>_on.png / _off.png: the five billboards (from the mid layer) and the
+  wall lamp (near layer), cut out of the backdrop so NeonSign can flicker them; lit (with glow) and dead.
 """
 import math
 import random
@@ -269,6 +271,56 @@ def screen(img, box, kind, color, rng):
     img.alpha_composite(tile, (x0, y0))
 
 
+# Neon signs that flicker at runtime: name, box (inclusive), screen kind, color.
+SCREENS = [
+    ("glyphs", (106, 40, 156, 150), "glyphs", CYAN),
+    ("hex", (378, 60, 426, 160), "hex", PINK),
+    ("target", (380, 172, 424, 206), "target", CYAN),
+    ("bars", (456, 104, 488, 130), "bars", PINK),
+    ("wave", (190, 124, 222, 146), "wave", TEAL),
+]
+LAMP_BOX = (558, 146, 570, 150)
+SIGN_MARGIN = 6  # room for the screen glow (radius 5) around each sign sprite
+
+
+def sign_crop(box, kind):
+    """Sprite rect (left, top, right, bottom exclusive) for a sign; the lamp includes its floor light cone."""
+    if kind == "lamp":
+        return (520, 146, 601, GROUND_Y + 1)
+    x0, y0, x1, y1 = box
+    return (x0 - SIGN_MARGIN, y0 - SIGN_MARGIN, x1 + 1 + SIGN_MARGIN, y1 + 1 + SIGN_MARGIN)
+
+
+def dead_sign(size, box, crop, color, kind):
+    """The sign switched off: an unlit dark panel (or a cold lamp fixture), no glow."""
+    img = Image.new("RGBA", size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    x0, y0, x1, y1 = box[0] - crop[0], box[1] - crop[1], box[2] - crop[0], box[3] - crop[1]
+    if kind == "lamp":
+        d.rectangle([x0, y0, x1, y1], fill=(72, 58, 76, 255))
+        d.line([x0 + 1, y1, x1 - 1, y1], fill=(110, 84, 110, 255))
+        return img
+    d.rectangle([x0, y0, x1, y1], fill=lerp(color, (0, 0, 0), 0.93) + (255,))
+    for y in range(y0 + 1, y1, 2):
+        d.line([x0, y, x1, y], fill=lerp(color, (0, 0, 0), 0.97) + (255,))
+    d.rectangle([x0, y0, x1, y1], outline=lerp(color, (0, 0, 0), 0.72) + (255,))
+    return img
+
+
+def make_signs(signs, out):
+    """Writes sign_<name>_on.png (lit, with glow) and sign_<name>_off.png (dead) for each sign layer.
+    Pixel coordinates of each sprite's center are printed for placing it over the backdrop."""
+    out.mkdir(parents=True, exist_ok=True)
+    for name, layer, box, color in signs:
+        kind = "lamp" if name == "lamp" else "screen"
+        crop = sign_crop(box, kind)
+        lit = layer.crop(crop)
+        lit.save(out / f"sign_{name}_on.png")
+        dead_sign(lit.size, box, crop, color, kind).save(out / f"sign_{name}_off.png")
+        cx, cy = (crop[0] + crop[2]) / 2, (crop[1] + crop[3]) / 2
+        print(f"sign_{name}: center px ({cx}, {cy}) -> world ({(cx - W / 2) / 30:.4f}, {(H / 2 - cy) / 30:.4f})")
+
+
 def make_mid(rng):
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
 
@@ -292,12 +344,13 @@ def make_mid(rng):
         d.point((x, 193), fill=(255, 220, 160, 255))
     overlay(img, lambda o: o.rectangle([266, 197, 372, 200], fill=TEAL + (60,)))
 
-    # Big screens.
-    screen(img, (106, 40, 156, 150), "glyphs", CYAN, rng)
-    screen(img, (378, 60, 426, 160), "hex", PINK, rng)
-    screen(img, (380, 172, 424, 206), "target", CYAN, rng)
-    screen(img, (456, 104, 488, 130), "bars", PINK, rng)
-    screen(img, (190, 124, 222, 146), "wave", TEAL, rng)
+    # Big screens, each on its own layer: they're exported as separate flickering neon signs
+    # (see make_signs) and left out of backdrop_mid itself.
+    signs = []
+    for name, box, kind, color in SCREENS:
+        layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        screen(layer, box, kind, color, rng)
+        signs.append((name, layer, box, color))
 
     # A hover car crossing the gap, with headlight beam.
     overlay(img, lambda o: o.polygon([(282, 112), (240, 104), (240, 126)], fill=(220, 255, 255, 40)))
@@ -309,7 +362,7 @@ def make_mid(rng):
 
     # Shadow the street level under the alley.
     overlay(img, lambda o: o.rectangle([0, GROUND_Y, W, H], fill=(4, 6, 12, 230)))
-    return img
+    return img, signs
 
 
 def make_near(rng):
@@ -418,13 +471,12 @@ def make_near(rng):
         d.rectangle([bx, by, bx + bw, by + 2], fill=(118, 82, 58, 255))
         d.line([bx + bw // 2, by, bx + bw // 2, by + 5], fill=(64, 42, 30, 255))
 
-    # Lamp over the right door with a light cone on the floor.
-    layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    ld = ImageDraw.Draw(layer)
+    # Lamp over the right door with a light cone on the floor; also a flickering sign (see make_signs).
+    lamp = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ld = ImageDraw.Draw(lamp)
     ld.polygon([(560, 150), (568, 150), (600, GROUND_Y), (520, GROUND_Y)], fill=(255, 140, 220, 22))
-    img.alpha_composite(layer)
-    d.rectangle([558, 146, 570, 150], fill=(255, 190, 235, 255))
-    return img
+    ld.rectangle([558, 146, 570, 150], fill=(255, 190, 235, 255))
+    return img, ("lamp", lamp, LAMP_BOX, PINK)
 
 
 # ---------------------------------------------------------------- fighter
@@ -947,10 +999,13 @@ def main():
     (ART / "Backdrop").mkdir(parents=True, exist_ok=True)
     (ART / "Fighters").mkdir(parents=True, exist_ok=True)
 
-    far, mid, near = make_far(rng), make_mid(rng), make_near(rng)
+    far = make_far(rng)
+    mid, signs = make_mid(rng)
+    near, lamp = make_near(rng)
     far.save(ART / "Backdrop" / "backdrop_far.png")
     mid.save(ART / "Backdrop" / "backdrop_mid.png")
     near.save(ART / "Backdrop" / "backdrop_near.png")
+    make_signs(signs + [lamp], ART / "Backdrop" / "Signs")
 
     player, ai = make_sheet(PLAYER_PALETTE), make_sheet(AI_PALETTE)
     player.save(ART / "Fighters" / "fighter_player.png")
@@ -971,7 +1026,10 @@ def main():
         out.mkdir(parents=True, exist_ok=True)
         comp = far.copy()
         comp.alpha_composite(mid)
+        for _, layer, _, _ in signs:
+            comp.alpha_composite(layer)
         comp.alpha_composite(near)
+        comp.alpha_composite(lamp[1])
         comp.resize((W * 2, H * 2), Image.NEAREST).save(out / "backdrop_preview.png")
         both = Image.new("RGBA", (player.width * 2, player.height), (60, 60, 70, 255))
         both.alpha_composite(player, (0, 0))
