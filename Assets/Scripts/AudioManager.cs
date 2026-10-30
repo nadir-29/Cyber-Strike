@@ -3,8 +3,31 @@ using System.Collections;
 using UnityEngine;
 
 // Plays every sound effect by listening to fighter events; gameplay code never calls it.
+// Menu sounds go through the static PlayUI, which works in every scene and survives scene loads.
 public class AudioManager : MonoBehaviour
 {
+    // Persistent 2D source for UI sounds, created on first use. Kept across scene loads so a button
+    // that loads a new scene is still heard; it isn't tied to an AudioManager in the scene.
+    static AudioSource uiSource;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetUISource() => uiSource = null; // domain reload is off: clear the stale reference
+
+    public static void PlayUI(AudioClip clip, float volume)
+    {
+        if (clip == null) return;
+        if (uiSource == null)
+        {
+            var go = new GameObject("UIAudio");
+            DontDestroyOnLoad(go);
+            uiSource = go.AddComponent<AudioSource>();
+            uiSource.playOnAwake = false;
+            uiSource.spatialBlend = 0f;
+            uiSource.ignoreListenerPause = true;
+        }
+        uiSource.PlayOneShot(clip, volume);
+    }
+
     [Serializable]
     class AbilitySound
     {

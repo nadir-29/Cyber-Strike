@@ -303,6 +303,7 @@ GameObject:
   - component: {fileID: 67071263}
   - component: {fileID: 67071264}
   - component: {fileID: 67071262}
+  - component: {fileID: 67071267}
   m_Layer: 0
   m_Name: MENUButton
   m_TagString: Untagged
@@ -435,6 +436,22 @@ RectTransform:
   m_AnchoredPosition: {x: 260, y: -120}
   m_SizeDelta: {x: 399, y: 133}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &67071267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 67071261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4152ec50fc681fa45826385d1e92228f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
+  hoverClip: {fileID: 8300000, guid: 58723bcbe0ff9c846aeb85aa35312154, type: 3}
+  clickClip: {fileID: 8300000, guid: dba3b6284e3858540a55f2fe76c95cb4, type: 3}
+  hoverVolume: 0.35
+  clickVolume: 0.3
 --- !u!1 &89400002
 GameObject:
   m_ObjectHideFlags: 0
@@ -1853,6 +1870,7 @@ GameObject:
   - component: {fileID: 955508024}
   - component: {fileID: 955508023}
   - component: {fileID: 955508026}
+  - component: {fileID: 955508027}
   m_Layer: 0
   m_Name: RESTARTButton
   m_TagString: Untagged
@@ -1985,6 +2003,22 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &955508027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 955508021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4152ec50fc681fa45826385d1e92228f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
+  hoverClip: {fileID: 8300000, guid: 58723bcbe0ff9c846aeb85aa35312154, type: 3}
+  clickClip: {fileID: 8300000, guid: dba3b6284e3858540a55f2fe76c95cb4, type: 3}
+  hoverVolume: 0.35
+  clickVolume: 0.3
 --- !u!1 &1006259701
 GameObject:
   m_ObjectHideFlags: 0

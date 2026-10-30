@@ -19,6 +19,8 @@ public class FighterSelect : MonoBehaviour
     InputAction rightAction;
     InputAction confirmAction;
     InputAction backAction;
+    UIButtonSound[] cardSounds;
+    UIButtonSound backSound;
     int index;
     bool picked;
 
@@ -34,12 +36,18 @@ public class FighterSelect : MonoBehaviour
         confirmAction.AddBinding("<Keyboard>/numpadEnter");
         backAction = new InputAction("Back", InputActionType.Button, "<Keyboard>/escape");
 
-        foreach (OpponentCard card in cards)
+        cardSounds = new UIButtonSound[cards.Length];
+        for (int i = 0; i < cards.Length; i++)
         {
-            card.Hovered += OnCardHovered;
-            card.Clicked += OnCardClicked;
+            cards[i].Hovered += OnCardHovered;
+            cards[i].Clicked += OnCardClicked;
+            cardSounds[i] = cards[i].GetComponent<UIButtonSound>();
         }
-        if (backButton != null) backButton.onClick.AddListener(GoBack);
+        if (backButton != null)
+        {
+            backButton.onClick.AddListener(GoBack);
+            backSound = backButton.GetComponent<UIButtonSound>();
+        }
     }
 
     void OnEnable()
@@ -72,7 +80,7 @@ public class FighterSelect : MonoBehaviour
         index = 0;
         for (int i = 0; i < cards.Length; i++)
             if (cards[i].Opponent == OpponentRoster.Selected) index = i;
-        Highlight(index);
+        Highlight(index, false); // the starting card is highlighted silently
     }
 
     void Update()
@@ -95,12 +103,17 @@ public class FighterSelect : MonoBehaviour
         if (!picked) Pick(System.Array.IndexOf(cards, card));
     }
 
-    void Highlight(int i)
+    // Hover sounds follow the highlight, so arrow keys and the mouse sound the same and a card
+    // that stays highlighted doesn't blip again.
+    void Highlight(int i, bool playSound = true)
     {
         if (i < 0 || i >= cards.Length) return;
         index = i;
         for (int c = 0; c < cards.Length; c++)
+        {
             cards[c].SetHighlighted(c == index);
+            if (cardSounds[c] != null) cardSounds[c].SetHovered(c == index, playSound);
+        }
     }
 
     void Pick(int i)
@@ -108,6 +121,7 @@ public class FighterSelect : MonoBehaviour
         if (i < 0 || i >= cards.Length) return;
         Highlight(i);
         picked = true;
+        if (cardSounds[i] != null) cardSounds[i].PlayClick();
         OpponentRoster.Selected = cards[i].Opponent;
         cards[i].PlayPicked();
         StartCoroutine(LoadArena());
@@ -122,6 +136,7 @@ public class FighterSelect : MonoBehaviour
     public void GoBack()
     {
         if (picked) return;
+        if (backSound != null) backSound.PlayClick(); // Esc; a mouse click already played it (deduped)
         SceneManager.LoadScene(menuScene);
     }
 }

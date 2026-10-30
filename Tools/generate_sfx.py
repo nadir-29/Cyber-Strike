@@ -9,6 +9,8 @@ Outputs (Assets/Audio/)
   punch.wav, kick.wav, hit.wav, deflect.wav, pickup.wav,
   ability_double_damage.wav, ability_healing.wav, ability_steal.wav, ability_ice_strike.wav,
   win.wav, lose.wav
+Outputs (Assets/Audio/UI/)
+  ui_hover.wav (soft high blip), ui_click.wav (punchier confirm); both quiet, menu-only
 """
 import math
 import random
@@ -121,8 +123,9 @@ def echo(track, delay=0.09, feedback=0.35, taps=3):
 def save(name, track, peak=0.85):
     m = max(1e-6, max(abs(s) for s in track))
     scale = peak / m if m > peak else 1.0
-    OUT.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(OUT / f"{name}.wav"), "wb") as w:
+    path = OUT / f"{name}.wav"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with wave.open(str(path), "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
         w.setframerate(RATE)
@@ -227,12 +230,25 @@ def lose():
     return mix(track, bass, sag, offsets=[0.0, 0.0, 0.62])
 
 
+def ui_hover():
+    """Soft high blip: a tiny triangle chirp sliding up, very short and quiet."""
+    return tone(0.045, sweep(1500, 2100), triangle, 0.22, attack=0.002, curve=1.6)
+
+
+def ui_click():
+    """Confirm: a short click tick then two quick rising square notes."""
+    tick = noise(0.012, 0.25, curve=3.0, hold=1)
+    notes = seq([(note(10), 0.04), (note(17), 0.08)], duty_fn=0.25, volume=0.28)
+    return mix(tick, notes)
+
+
 def main():
     sounds = {
         "punch": punch, "kick": kick, "hit": hit, "deflect": deflect, "pickup": pickup,
         "ability_double_damage": double_damage, "ability_healing": healing,
         "ability_steal": steal, "ability_ice_strike": ice_strike,
         "win": win, "lose": lose,
+        "UI/ui_hover": ui_hover, "UI/ui_click": ui_click,
     }
     for name, make in sounds.items():
         track = make()

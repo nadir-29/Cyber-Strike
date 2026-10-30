@@ -1300,6 +1300,7 @@ GameObject:
   - component: {fileID: 336903344}
   - component: {fileID: 336903343}
   - component: {fileID: 336903345}
+  - component: {fileID: 336903346}
   m_Layer: 0
   m_Name: Card_Hard_cyborg
   m_TagString: Untagged
@@ -1401,6 +1402,22 @@ MonoBehaviour:
   dimmedPortrait: {r: 0.45, g: 0.45, b: 0.55, a: 1}
   emptyStar: {r: 0.25, g: 0.22, b: 0.32, a: 0.8}
   pickFlashTime: 0.35
+--- !u!114 &336903346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336903341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4152ec50fc681fa45826385d1e92228f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
+  hoverClip: {fileID: 8300000, guid: 58723bcbe0ff9c846aeb85aa35312154, type: 3}
+  clickClip: {fileID: 8300000, guid: dba3b6284e3858540a55f2fe76c95cb4, type: 3}
+  hoverVolume: 0.35
+  clickVolume: 0.3
 --- !u!1 &437815022
 GameObject:
   m_ObjectHideFlags: 0
@@ -2885,6 +2902,7 @@ GameObject:
   - component: {fileID: 1215164391}
   - component: {fileID: 1215164392}
   - component: {fileID: 1215164390}
+  - component: {fileID: 1215164395}
   m_Layer: 0
   m_Name: BACKButton
   m_TagString: Untagged
@@ -3017,6 +3035,22 @@ RectTransform:
   m_AnchoredPosition: {x: 40, y: -30}
   m_SizeDelta: {x: 315, y: 95}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &1215164395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1215164389}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4152ec50fc681fa45826385d1e92228f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
+  hoverClip: {fileID: 8300000, guid: 58723bcbe0ff9c846aeb85aa35312154, type: 3}
+  clickClip: {fileID: 8300000, guid: dba3b6284e3858540a55f2fe76c95cb4, type: 3}
+  hoverVolume: 0.35
+  clickVolume: 0.3
 --- !u!1 &1217123657
 GameObject:
   m_ObjectHideFlags: 0
@@ -3462,6 +3496,7 @@ GameObject:
   - component: {fileID: 1710367349}
   - component: {fileID: 1710367348}
   - component: {fileID: 1710367350}
+  - component: {fileID: 1710367351}
   m_Layer: 0
   m_Name: Card_Medium_enforcer
   m_TagString: Untagged
@@ -3563,6 +3598,22 @@ MonoBehaviour:
   dimmedPortrait: {r: 0.45, g: 0.45, b: 0.55, a: 1}
   emptyStar: {r: 0.25, g: 0.22, b: 0.32, a: 0.8}
   pickFlashTime: 0.35
+--- !u!114 &1710367351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710367346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4152ec50fc681fa45826385d1e92228f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
+  hoverClip: {fileID: 8300000, guid: 58723bcbe0ff9c846aeb85aa35312154, type: 3}
+  clickClip: {fileID: 8300000, guid: dba3b6284e3858540a55f2fe76c95cb4, type: 3}
+  hoverVolume: 0.35
+  clickVolume: 0.3
 --- !u!1 &1761472377
 GameObject:
   m_ObjectHideFlags: 0
@@ -3899,6 +3950,7 @@ GameObject:
   - component: {fileID: 1892777213}
   - component: {fileID: 1892777212}
   - component: {fileID: 1892777214}
+  - component: {fileID: 1892777215}
   m_Layer: 0
   m_Name: Card_Easy_rookie
   m_TagString: Untagged
@@ -4000,6 +4052,22 @@ MonoBehaviour:
   dimmedPortrait: {r: 0.45, g: 0.45, b: 0.55, a: 1}
   emptyStar: {r: 0.25, g: 0.22, b: 0.32, a: 0.8}
   pickFlashTime: 0.35
+--- !u!114 &1892777215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1892777210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4152ec50fc681fa45826385d1e92228f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
+  hoverClip: {fileID: 8300000, guid: 58723bcbe0ff9c846aeb85aa35312154, type: 3}
+  clickClip: {fileID: 8300000, guid: dba3b6284e3858540a55f2fe76c95cb4, type: 3}
+  hoverVolume: 0.35
+  clickVolume: 0.3
 --- !u!1 &1895618249
 GameObject:
   m_ObjectHideFlags: 0

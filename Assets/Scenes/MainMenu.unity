@@ -378,6 +378,7 @@ GameObject:
   - component: {fileID: 136161279}
   - component: {fileID: 136161278}
   - component: {fileID: 136161281}
+  - component: {fileID: 136161282}
   m_Layer: 0
   m_Name: STARTButton
   m_TagString: Untagged
@@ -510,6 +511,22 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &136161282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136161276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4152ec50fc681fa45826385d1e92228f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
+  hoverClip: {fileID: 8300000, guid: 58723bcbe0ff9c846aeb85aa35312154, type: 3}
+  clickClip: {fileID: 8300000, guid: dba3b6284e3858540a55f2fe76c95cb4, type: 3}
+  hoverVolume: 0.35
+  clickVolume: 0.3
 --- !u!1 &144105805
 GameObject:
   m_ObjectHideFlags: 0
@@ -1237,6 +1254,7 @@ GameObject:
   - component: {fileID: 1215164391}
   - component: {fileID: 1215164392}
   - component: {fileID: 1215164390}
+  - component: {fileID: 1215164395}
   m_Layer: 0
   m_Name: QUITButton
   m_TagString: Untagged
@@ -1369,6 +1387,22 @@ RectTransform:
   m_AnchoredPosition: {x: 420, y: -335}
   m_SizeDelta: {x: 408, y: 152}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1215164395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1215164389}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4152ec50fc681fa45826385d1e92228f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
+  hoverClip: {fileID: 8300000, guid: 58723bcbe0ff9c846aeb85aa35312154, type: 3}
+  clickClip: {fileID: 8300000, guid: dba3b6284e3858540a55f2fe76c95cb4, type: 3}
+  hoverVolume: 0.35
+  clickVolume: 0.3
 --- !u!1 &1291933865
 GameObject:
   m_ObjectHideFlags: 0
