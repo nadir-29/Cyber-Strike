@@ -72,7 +72,8 @@
 - Data: `Assets/Data/Opponents/` holds `OpponentRoster`, one `OpponentData` (name, bio, stars, portrait, accent, sprites, AI profile) and one `AIProfile` per opponent.
 - Art: `Tools/generate_art.py` draws each opponent in the shared fighter style (`OPPONENT_PALETTES`) into `Assets/Art/Fighters/Opponents/` (sheet, KO strip, portrait). Sheets use the same slicing as `fighter_ai.png`.
 - `FighterSkin` swaps the CPU fighter's base-sheet sprites for the opponent's by frame name, so all opponents share the AI animation clips.
-- The pick is kept in `OpponentRoster.Selected` (static) so Restart keeps the same opponent. Playing the Arena directly uses the roster default (Medium).
+- The pick is kept in `OpponentRoster.Selected` (static) so Restart keeps the same opponent. If the Arena loads with no opponent picked it uses the roster default (Easy). The pick is cleared at the start of each Play session.
+- `Assets/Scripts/Editor/PlayFromTitle.cs` sets `EditorSceneManager.playModeStartScene` to MainMenu, so Play in the editor always starts at the title screen.
 - The opponent's name is shown above the CPU health bar.
 
 ### Screens
