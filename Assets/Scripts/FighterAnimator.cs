@@ -13,6 +13,7 @@ public class FighterAnimator : MonoBehaviour
     static readonly int DeadHash = Animator.StringToHash("Dead");
     static readonly int BlockingHash = Animator.StringToHash("Blocking");
     static readonly int BlockHitHash = Animator.StringToHash("BlockHit");
+    static readonly int WinHash = Animator.StringToHash("Win");
 
     Fighter fighter;
     FighterCombat combat;
@@ -58,6 +59,17 @@ public class FighterAnimator : MonoBehaviour
     void OnAttackStarted(AttackType type)
     {
         animator.SetTrigger(type == AttackType.Punch ? PunchHash : KickHash);
+    }
+
+    // Strikes the victory pose (one-shot intro, then a loop) and holds it for the rest of the match.
+    // Pending attack / hurt triggers are cleared so nothing interrupts it.
+    public void PlayVictory()
+    {
+        animator.ResetTrigger(PunchHash);
+        animator.ResetTrigger(KickHash);
+        animator.ResetTrigger(HurtHash);
+        animator.ResetTrigger(BlockHitHash);
+        animator.SetTrigger(WinHash);
     }
 
     void OnBlocked(FighterCombat.HitInfo hit) => animator.SetTrigger(BlockHitHash);

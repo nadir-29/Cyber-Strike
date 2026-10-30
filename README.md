@@ -33,6 +33,12 @@ Menus: mouse, or Left/Right (A/D) + Enter on the fighter select screen; Esc goes
 | Medium     | SGT. HALDEN | Corporate security enforcer       |
 | Hard       | OBSIDIAN    | Elite cyborg assassin (+HP, +dmg) |
 
+## Victory poses
+
+After a knockout the winner strikes a victory pose before the win/loss screen: the player throws a
+cyber fist at the sky and headbangs, JINX VALE shrugs and beckons with a cocky grin, SGT. HALDEN snaps
+to attention and salutes, and OBSIDIAN points at you, eyes flaring red, and clenches a fist.
+
 ## Atmosphere
 
 The arena is drenched: two layers of pixel rain (faint and slow far away, brighter and faster up close)

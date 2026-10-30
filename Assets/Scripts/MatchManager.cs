@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // Match flow: a "3, 2, 1, FIGHT!" countdown with both fighters held, then the fight, then the
-// win/loss screen once either fighter is knocked out. Holds fighters by switching their input
+// winner's victory pose and the win/loss screen once either fighter is knocked out. Holds fighters by switching their input
 // controllers off; gameplay rules stay in Fighter and friends.
 public class MatchManager : MonoBehaviour
 {
@@ -31,8 +31,12 @@ public class MatchManager : MonoBehaviour
     [SerializeField] PixelText resultText;
     [SerializeField] Button restartButton;
     [SerializeField] Button menuButton;
-    [Tooltip("Real seconds after the knockout before the result screen shows, so the KO plays out.")]
-    [SerializeField] float resultDelay = 2f;
+    [Tooltip("Real seconds after the knockout before the winner strikes the victory pose, so the KO plays out.")]
+    [SerializeField] float victoryDelay = 1f;
+    [Tooltip("Longest real seconds to wait for an airborne winner to land before posing anyway.")]
+    [SerializeField] float landingTimeout = 1f;
+    [Tooltip("Real seconds the victory pose plays before the result screen shows.")]
+    [SerializeField] float victoryPoseTime = 2.4f;
     [SerializeField] float resultFadeTime = 0.35f;
     [SerializeField] Color winColor = new Color(0.85f, 1f, 1f);
     [SerializeField] Color winGlow = new Color(0f, 0.9f, 1f, 0.9f);
@@ -134,7 +138,11 @@ public class MatchManager : MonoBehaviour
 
     IEnumerator ShowResult(bool playerWon)
     {
-        yield return new WaitForSecondsRealtime(resultDelay);
+        yield return new WaitForSecondsRealtime(victoryDelay);
+
+        // Double KO: nobody poses.
+        Health winner = !player.IsDead ? player : opponent != null && !opponent.IsDead ? opponent : null;
+        if (winner != null) yield return VictoryPose(winner, winner == player ? opponent : player);
         if (resultPanel == null) yield break;
 
         if (resultText != null)
@@ -154,6 +162,23 @@ public class MatchManager : MonoBehaviour
         resultPanel.alpha = 1f;
         resultPanel.interactable = true;
         resultPanel.blocksRaycasts = true;
+    }
+
+    // The winner lands, turns to the loser and holds its victory pose for a moment.
+    IEnumerator VictoryPose(Health winner, Health loser)
+    {
+        Fighter fighter = winner.GetComponent<Fighter>();
+        if (fighter != null)
+        {
+            for (float time = 0f; time < landingTimeout && !fighter.IsGrounded; time += Time.unscaledDeltaTime)
+                yield return null;
+            if (loser != null)
+                fighter.Face(loser.transform.position.x >= winner.transform.position.x ? 1 : -1);
+        }
+
+        FighterAnimator animator = winner.GetComponent<FighterAnimator>();
+        if (animator != null) animator.PlayVictory();
+        yield return new WaitForSecondsRealtime(victoryPoseTime);
     }
 
     void SetFightersActive(bool active)

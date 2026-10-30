@@ -17,6 +17,8 @@ Backdrop is 16:9 and meant for 30 pixels per unit (12 x 21.3 units).
 Fighter sheet rows, top to bottom: idle(4) walk(6) jump(2) punch(3) kick(3) hurt(2).
 KO strips (fighter_<who>_ko.png, 192x64): reel(flash), flung, limp (visor off).
 Block strips (fighter_<who>_block.png, 192x64): raise guard, hold guard, impact recoil.
+Victory strips (fighter_<who>_win.png, 512x64): 4 intro frames played once, then a 4-frame loop; a unique
+  pose per personality (rocker fist + headbang, punk cocky beckon, enforcer salute, cyborg point + eye flare).
 Assets/Art/VFX/block_shield.png: cyan hex-energy shield shown in front of a fighter when a hit is blocked.
 Assets/Art/Backdrop/Signs/sign_<name>_on.png / _off.png: the five billboards (from the mid layer) and the
   wall lamp (near layer), cut out of the backdrop so NeonSign can flicker them; lit (with glow) and dead.
@@ -534,7 +536,9 @@ GUARD = dict(fa=40, ff=160, ba=20, bf=150)
 
 
 def pose(**kw):
-    p = dict(lean=5, ft=18, fs=-6, bt=-16, bs=4, grounded=True, hip_y=38, head=0, flash=False, dazed=False)
+    # Victory-only face details: grin (0 / 1 / 2 = tongue out), glint (visor sparkle x offset), eyes (0-2 flare).
+    p = dict(lean=5, ft=18, fs=-6, bt=-16, bs=4, grounded=True, hip_y=38, head=0, flash=False, dazed=False,
+             grin=0, glint=None, eyes=0)
     p.update(GUARD)
     p.update(kw)
     return p
@@ -583,6 +587,65 @@ def block_frames():
         pose(lean=0, fa=70, ff=130, ba=55, bf=120, **stance),
         pose(lean=-4, fa=105, ff=172, ba=88, bf=168, **stance),
         pose(lean=-12, head=-1, fa=112, ff=-178, ba=96, bf=176, ft=30, fs=-26, bt=-36, bs=8, hip_y=40),
+    ]
+
+
+WIN_INTRO = 4  # victory strip: 4 one-shot intro frames, then a 4-frame loop held until the result screen
+
+
+def victory_frames(style):
+    """Victory pose per personality: frames 0-3 play once, 4-7 loop."""
+    if style == "rocker":  # rock star: cyber fist thrown at the sky, then headbangs while air-guitaring
+        legs = dict(ft=26, fs=-10, bt=-24, bs=8)
+        def bang(lean, head, bf):
+            return pose(lean=lean, head=head, fa=128, ff=176, ba=62, bf=bf, hip_y=39, **legs)
+        return [
+            pose(lean=-4, fa=20, ff=40, ba=-10, bf=10),
+            pose(lean=12, head=1, hip_y=41, ft=32, fs=-22, bt=-28, bs=12, fa=55, ff=0, ba=-30, bf=-10),
+            pose(lean=-6, head=-1, fa=120, ff=170, ba=-40, bf=-20, **legs),
+            pose(lean=-10, head=-2, fa=132, ff=178, ba=-50, bf=-30, **legs),
+            bang(8, 2, 70), bang(2, 1, 120), bang(-8, -2, 70), bang(2, 1, 120),
+        ]
+    if style == "punk":  # cocky rookie: shrugs, hops, then beckons "come on" with a hand behind the head
+        def beckon(ff, hip_y, lean, grin=1):
+            return pose(lean=lean, hip_y=hip_y, ft=14, fs=-4, bt=-20, bs=6, fa=98, ff=ff, ba=-172, bf=-95,
+                        grin=grin)
+        return [
+            pose(lean=-8, head=-1, fa=45, ff=100, ba=-45, bf=-100, grin=1),
+            pose(grounded=False, hip_y=33, lean=-4, ft=60, fs=-40, bt=10, bs=-60,
+                 fa=140, ff=160, ba=-140, bf=-160, grin=1),
+            pose(lean=-6, hip_y=40, ft=30, fs=-20, bt=-26, bs=12, fa=140, ff=160, ba=-140, bf=-160, grin=1),
+            beckon(150, 38, -8),
+            beckon(170, 38, -10), beckon(115, 37, -12, grin=2), beckon(170, 38, -10), beckon(115, 37, -12),
+        ]
+    if style == "enforcer":  # by the book: snaps to attention and holds a crisp salute, visor scanning
+        attention = dict(lean=0, ft=3, fs=0, bt=-3, bs=0, ba=0, bf=0)
+        salute = dict(fa=110, ff=-156, **attention)
+        return [
+            pose(fa=0, ff=0, **attention),
+            pose(fa=0, ff=0, glint=0, **attention),
+            pose(fa=95, ff=170, **attention),
+            pose(glint=0, **salute),
+            pose(glint=2, **salute), pose(glint=4, **salute), pose(glint=6, **salute), pose(**salute),
+        ]
+    if style == "cyborg":  # cold executioner: points at the fallen foe, eyes flare, crushes a fist and waits
+        stand = dict(lean=0, ft=10, fs=0, bt=-10, bs=0, ba=-8, bf=-4)
+        clench = dict(fa=70, ff=150, **stand)
+        return [
+            pose(lean=2, fa=25, ff=70, ba=10, bf=30, ft=14, fs=-4, bt=-14, bs=2),
+            pose(fa=94, ff=92, eyes=1, **stand),
+            pose(fa=94, ff=92, eyes=2, **stand),
+            pose(eyes=1, **clench),
+            pose(eyes=1, **clench), pose(eyes=2, **clench), pose(eyes=2, head=1, **clench), pose(eyes=1, **clench),
+        ]
+    # Default CPU agent: a fist pump, then a steady bob.
+    return [
+        pose(lean=0, fa=20, ff=60),
+        pose(lean=8, hip_y=40, fa=60, ff=10),
+        pose(lean=-4, fa=120, ff=170),
+        pose(lean=-6, fa=130, ff=178),
+        pose(lean=-6, fa=130, ff=178), pose(lean=-4, hip_y=39, fa=126, ff=174),
+        pose(lean=-6, fa=130, ff=178), pose(lean=-4, hip_y=39, fa=126, ff=174),
     ]
 
 
@@ -674,9 +737,10 @@ def draw_fighter(pal, p):
         bx, by = off(neck, -7)
         d.rectangle([bx - 4, by - 6, bx + 3, by + 6], fill=pal["jacket_dark"])
         d.rectangle([bx - 4, by - 6, bx + 3, by - 5], fill=pal["jacket_hi"])
+        cell = pal["accent_hi"] if p["eyes"] >= 2 else pal["accent"]
         for cy in (by - 3, by + 1):
-            d.point((bx - 2, cy), fill=pal["accent"])
-            d.point((bx + 1, cy), fill=pal["accent"])
+            d.point((bx - 2, cy), fill=cell)
+            d.point((bx + 1, cy), fill=cell)
 
     if style == "rocker":  # long hair falling behind the shoulders
         hx0, hy0 = ipt(head)
@@ -731,6 +795,8 @@ def draw_fighter(pal, p):
         d.rectangle([hx - 3, hy - 2, hx + 6, hy], fill=dim if p["dazed"] else pal["accent"])
         if not p["dazed"]:
             d.line([hx - 1, hy - 2, hx + 5, hy - 2], fill=pal["accent_hi"])
+        if p["glint"] is not None:  # white sparkle sweeping across the visor
+            d.line([hx - 3 + p["glint"], hy - 2, hx - 3 + p["glint"], hy - 1], fill=(255, 255, 255))
     elif style == "cyborg":
         # Pale face under a gunmetal skull cap ridged with cables, glowing red eyes, jaw grille.
         d.ellipse([hx - 5, hy - 6, hx + 5, hy + 6], fill=pal["skin"])
@@ -742,7 +808,12 @@ def draw_fighter(pal, p):
         d.rectangle([hx, hy + 3, hx + 4, hy + 5], fill=pal["jacket_dark"])
         d.line([hx + 1, hy + 4, hx + 3, hy + 4], fill=pal["jacket_hi"])
         for ex in (hx + 1, hx + 4):
-            d.rectangle([ex, hy, ex + 1, hy + 1], fill=dim if p["dazed"] else pal["accent"])
+            d.rectangle([ex, hy, ex + 1, hy + 1],
+                        fill=dim if p["dazed"] else pal["accent_hi"] if p["eyes"] else pal["accent"])
+        if p["eyes"] >= 2:  # flare: hot cores and a red streak trailing back from the eyes
+            d.point((hx + 1, hy), fill=(255, 255, 255))
+            d.point((hx + 4, hy), fill=(255, 255, 255))
+            d.line([hx - 2, hy, hx, hy], fill=pal["accent"])
         if not p["dazed"]:
             d.point((hx + 5, hy), fill=pal["accent_hi"])
             d.point((hx - 3, hy - 4), fill=pal["accent"])
@@ -775,6 +846,11 @@ def draw_fighter(pal, p):
             d.point(tip, fill=pal["hair_hi"])
         d.rectangle([hx, hy - 2, hx + 6, hy - 1], fill=dim if p["dazed"] else pal["accent"])
         d.point((hx - 2, hy + 1), fill=pal["accent_hi"])
+        if p["grin"]:  # cocky grin, smirk turned up; 2 = tongue out
+            d.line([hx + 1, hy + 3, hx + 4, hy + 3], fill=(250, 250, 250))
+            d.point((hx + 5, hy + 2), fill=pal["skin_dark"])
+            if p["grin"] == 2:
+                d.line([hx + 3, hy + 4, hx + 4, hy + 4], fill=(255, 90, 140))
     else:
         # Head: hair, face, visor.
         d.ellipse([hx - 5, hy - 5, hx + 5, hy + 6], fill=pal["skin"])
@@ -836,6 +912,10 @@ def make_ko_strip(pal, frames=None):
 
 def make_block_strip(pal):
     return make_ko_strip(pal, block_frames())
+
+
+def make_win_strip(pal):
+    return make_ko_strip(pal, victory_frames(pal.get("style", "agent")))
 
 
 def make_block_shield():
@@ -903,6 +983,7 @@ def make_opponents(out):
         make_sheet(pal).save(out / f"fighter_{oid}.png")
         make_ko_strip(pal).save(out / f"fighter_{oid}_ko.png")
         make_block_strip(pal).save(out / f"fighter_{oid}_block.png")
+        make_win_strip(pal).save(out / f"fighter_{oid}_win.png")
         make_portrait(pal).save(out / f"portrait_{oid}.png")
 
 
@@ -1016,6 +1097,8 @@ def main():
     make_hud(ART / "UI")
     make_block_strip(PLAYER_PALETTE).save(ART / "Fighters" / "fighter_player_block.png")
     make_block_strip(AI_PALETTE).save(ART / "Fighters" / "fighter_ai_block.png")
+    make_win_strip(PLAYER_PALETTE).save(ART / "Fighters" / "fighter_player_win.png")
+    make_win_strip(AI_PALETTE).save(ART / "Fighters" / "fighter_ai_win.png")
     make_opponents(ART / "Fighters" / "Opponents")
     (ART / "VFX").mkdir(parents=True, exist_ok=True)
     make_block_shield().save(ART / "VFX" / "block_shield.png")
@@ -1055,6 +1138,10 @@ def main():
             blocks.alpha_composite(make_block_strip(pal), (0, FRAME * i))
             blocks.alpha_composite(make_block_shield(), (FRAME * 3 + 10, FRAME * i + 12))
         blocks.resize((blocks.width * 4, blocks.height * 4), Image.NEAREST).save(out / "block_preview.png")
+        wins = Image.new("RGBA", (FRAME * 8, FRAME * len(pals)), (60, 60, 70, 255))
+        for i, pal in enumerate(pals):
+            wins.alpha_composite(make_win_strip(pal), (0, FRAME * i))
+        wins.resize((wins.width * 3, wins.height * 3), Image.NEAREST).save(out / "win_preview.png")
 
 
 if __name__ == "__main__":

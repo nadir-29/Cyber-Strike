@@ -3917,7 +3917,9 @@ MonoBehaviour:
   resultText: {fileID: 192261640}
   restartButton: {fileID: 955508026}
   menuButton: {fileID: 67071262}
-  resultDelay: 2
+  victoryDelay: 1
+  landingTimeout: 1
+  victoryPoseTime: 2.4
   resultFadeTime: 0.35
   winColor: {r: 0.85, g: 1, b: 1, a: 1}
   winGlow: {r: 0, g: 0.9, b: 1, a: 0.9}
