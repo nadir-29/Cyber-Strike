@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // Shared fighter logic for both the player and the AI.
-// Input controllers (PlayerInputController / AIController) only call SetMoveInput and Jump
+// Input controllers (PlayerInputController / AIController) only call SetMoveInput, Face and Jump
 // here, and Punch / Kick on FighterCombat.
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class Fighter : MonoBehaviour
@@ -45,6 +45,13 @@ public class Fighter : MonoBehaviour
     public void Jump()
     {
         jumpRequested = true;
+    }
+
+    // Turns to face a direction (-1 or 1) without moving. Ignored while movement is locked.
+    public void Face(int direction)
+    {
+        if (!MovementLocked && direction != 0)
+            SetFacing(direction > 0 ? 1 : -1);
     }
 
     void FixedUpdate()
