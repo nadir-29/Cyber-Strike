@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0916568367f719a49a5e1b1f725beeba, type: 3}
+  m_Name: AbilityCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::AbilityCatalog
+  entries:
+  - type: 1
+    pickupSprite: {fileID: 21300000, guid: c7759935d6ed1924db5c48c3eee3b14c, type: 3}
+    icon: {fileID: 21300000, guid: 00662a60573b7674bb7f790139129162, type: 3}
+    color: {r: 1, g: 0.24, b: 0.35, a: 1}
+  - type: 2
+    pickupSprite: {fileID: 21300000, guid: ed82a075981dd4b4b8ec8d96b9150b8f, type: 3}
+    icon: {fileID: 21300000, guid: 05e270c546d07644fa9c8b4b901d09d1, type: 3}
+    color: {r: 0.24, g: 1, b: 0.55, a: 1}
+  - type: 3
+    pickupSprite: {fileID: 21300000, guid: efa56d8147832e740839f492dd7381e1, type: 3}
+    icon: {fileID: 21300000, guid: 0f8bf771a14b1cb498d8724ef3cae7cb, type: 3}
+    color: {r: 0.7, g: 0.31, b: 1, a: 1}
+  - type: 4
+    pickupSprite: {fileID: 21300000, guid: 7a81fa5b21470484485d0bc1d9493af8, type: 3}
+    icon: {fileID: 21300000, guid: f5f3477c36da5e04eb486871ad03fd82, type: 3}
+    color: {r: 0.47, g: 0.86, b: 1, a: 1}

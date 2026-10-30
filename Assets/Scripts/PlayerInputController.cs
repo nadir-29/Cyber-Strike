@@ -7,15 +7,18 @@ public class PlayerInputController : MonoBehaviour
 {
     Fighter fighter;
     FighterCombat combat;
+    FighterAbilities abilities;
     InputAction moveAction;
     InputAction jumpAction;
     InputAction punchAction;
     InputAction kickAction;
+    InputAction abilityAction;
 
     void Awake()
     {
         fighter = GetComponent<Fighter>();
         combat = GetComponent<FighterCombat>();
+        abilities = GetComponent<FighterAbilities>();
 
         moveAction = new InputAction("Move", InputActionType.Value);
         moveAction.AddCompositeBinding("1DAxis")
@@ -25,6 +28,7 @@ public class PlayerInputController : MonoBehaviour
         jumpAction = new InputAction("Jump", InputActionType.Button, "<Keyboard>/space");
         punchAction = new InputAction("Punch", InputActionType.Button, "<Mouse>/leftButton");
         kickAction = new InputAction("Kick", InputActionType.Button, "<Mouse>/rightButton");
+        abilityAction = new InputAction("Ability", InputActionType.Button, "<Keyboard>/e");
     }
 
     void OnEnable()
@@ -33,6 +37,7 @@ public class PlayerInputController : MonoBehaviour
         jumpAction.Enable();
         punchAction.Enable();
         kickAction.Enable();
+        abilityAction.Enable();
     }
 
     void OnDisable()
@@ -41,6 +46,7 @@ public class PlayerInputController : MonoBehaviour
         jumpAction.Disable();
         punchAction.Disable();
         kickAction.Disable();
+        abilityAction.Disable();
         fighter.SetMoveInput(0f);
     }
 
@@ -50,6 +56,7 @@ public class PlayerInputController : MonoBehaviour
         jumpAction.Dispose();
         punchAction.Dispose();
         kickAction.Dispose();
+        abilityAction.Dispose();
     }
 
     void Update()
@@ -62,5 +69,7 @@ public class PlayerInputController : MonoBehaviour
             combat.Punch();
         if (kickAction.WasPressedThisFrame())
             combat.Kick();
+        if (abilityAction.WasPressedThisFrame() && abilities != null)
+            abilities.UseAbility();
     }
 }

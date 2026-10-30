@@ -5,7 +5,7 @@ using UnityEngine;
 public enum AttackType { Punch, Kick }
 
 // Attacks, hitboxes and hit reactions shared by the player and the AI.
-// Input controllers only call Punch() and Kick().
+// Input controllers only call Punch() and Kick(). Damage is multiplied by FighterAbilities (Double Damage).
 [RequireComponent(typeof(Fighter), typeof(Health))]
 public class FighterCombat : MonoBehaviour
 {
@@ -48,6 +48,7 @@ public class FighterCombat : MonoBehaviour
     Fighter fighter;
     Health health;
     Stamina stamina;
+    FighterAbilities abilities;
     Attack current;
     float attackTime;
     float stunTime;
@@ -66,6 +67,7 @@ public class FighterCombat : MonoBehaviour
         fighter = GetComponent<Fighter>();
         health = GetComponent<Health>();
         stamina = GetComponent<Stamina>();
+        abilities = GetComponent<FighterAbilities>();
         hurtboxFilter = new ContactFilter2D();
         hurtboxFilter.SetLayerMask(hurtboxLayers);
 
@@ -129,7 +131,11 @@ public class FighterCombat : MonoBehaviour
             Health target = col.GetComponentInParent<Health>();
             // HashSet.Add returns false if this swing already hit the target.
             if (target == null || target == health || !hitThisSwing.Add(target)) continue;
-            target.TakeDamage(current.damage, fighter.FacingDirection);
+            bool wasAlive = !target.IsDead;
+            int multiplier = abilities != null ? abilities.DamageMultiplier : 1;
+            target.TakeDamage(current.damage * multiplier, fighter.FacingDirection);
+            if (wasAlive && current == punch && abilities != null)
+                abilities.OnPunchLanded(target);
         }
     }
 

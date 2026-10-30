@@ -22,6 +22,15 @@ public class Health : MonoBehaviour
         Current = maxHealth;
     }
 
+    // Restores HP, capped at max.
+    public void Heal(int amount)
+    {
+        if (IsDead || amount <= 0) return;
+
+        Current = Mathf.Min(maxHealth, Current + amount);
+        Changed?.Invoke(Current, maxHealth);
+    }
+
     public void TakeDamage(int amount, int hitDirection = 0)
     {
         if (IsDead || amount <= 0) return;

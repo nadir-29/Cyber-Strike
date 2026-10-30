@@ -50,9 +50,17 @@ public class HealthBar : MonoBehaviour
 
     void OnChanged(int current, int max)
     {
-        fill.fillAmount = (float)current / max;
-        trailTimer = trailDelay;
-        shakeTimer = shakeTime;
+        float amount = (float)current / max;
+        if (amount < fill.fillAmount)
+        {
+            trailTimer = trailDelay;
+            shakeTimer = shakeTime;
+        }
+        else
+        {
+            trail.fillAmount = amount; // healing: no damage trail
+        }
+        fill.fillAmount = amount;
     }
 
     void Update()

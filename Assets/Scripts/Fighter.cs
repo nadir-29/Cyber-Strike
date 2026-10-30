@@ -20,11 +20,14 @@ public class Fighter : MonoBehaviour
     Stamina stamina;
     float moveInput;
     bool jumpRequested;
+    float slowMultiplier = 1f;
+    float slowTimer;
 
     public bool IsGrounded { get; private set; }
     public int FacingDirection { get; private set; } = 1;
     // Set by FighterCombat while attacking, stunned or knocked out.
     public bool MovementLocked { get; set; }
+    public bool IsSlowed => slowTimer > 0f;
 
     void Awake()
     {
@@ -63,13 +66,21 @@ public class Fighter : MonoBehaviour
         rb.linearVelocity = velocity;
     }
 
+    // Multiplies move speed for a while (e.g. Ice Strike). A new slow refreshes the duration.
+    public void ApplySlow(float multiplier, float duration)
+    {
+        slowMultiplier = multiplier;
+        slowTimer = Mathf.Max(slowTimer, duration);
+    }
+
     void FixedUpdate()
     {
         IsGrounded = CheckGrounded();
+        if (slowTimer > 0f) slowTimer -= Time.fixedDeltaTime;
 
         Vector2 velocity = rb.linearVelocity;
         if (!MovementLocked)
-            velocity.x = moveInput * moveSpeed;
+            velocity.x = moveInput * moveSpeed * (IsSlowed ? slowMultiplier : 1f);
         else if (IsGrounded && velocity.y <= 0.01f)
             velocity.x = 0f; // airborne attacks and launches keep their momentum
 
