@@ -14,6 +14,10 @@ public class MainMenu : MonoBehaviour
         TimeControl.ResetAll();
         if (startButton != null) startButton.onClick.AddListener(StartMatch);
         if (quitButton != null) quitButton.onClick.AddListener(Quit);
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // A browser tab can't quit itself: no Quit button on the web.
+        if (quitButton != null) quitButton.gameObject.SetActive(false);
+#endif
     }
 
     public void StartMatch()
