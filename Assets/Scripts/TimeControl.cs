@@ -16,6 +16,14 @@ public static class TimeControl
         defaultFixedDeltaTime = -1f;
     }
 
+    // Back to normal speed, e.g. when a scene is (re)loaded mid slow motion or hit-pause.
+    public static void ResetAll()
+    {
+        slowMotion = 1f;
+        hitPaused = false;
+        Apply();
+    }
+
     public static void SetSlowMotion(float scale)
     {
         slowMotion = scale;
