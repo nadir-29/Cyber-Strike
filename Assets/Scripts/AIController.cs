@@ -26,10 +26,19 @@ public class AIController : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float backOffAfterAttackChance = 0.25f;
     [SerializeField, Range(0f, 1f)] float backOffWhenHitChance = 0.4f;
 
+    [Header("Stamina")]
+    [Tooltip("Below this stamina fraction it keeps its distance to recover.")]
+    [SerializeField, Range(0f, 1f)] float lowStamina = 0.2f;
+    [Tooltip("Stamina fraction at which it goes back on the attack.")]
+    [SerializeField, Range(0f, 1f)] float recoveredStamina = 0.6f;
+    [SerializeField] float recoverDistance = 3.5f;
+
     Fighter fighter;
     FighterCombat combat;
     Health health;
+    Stamina stamina;
     Health targetHealth;
+    bool recovering;
     float thinkTimer;
     float attackTimer;
     float backOffTimer;
@@ -39,6 +48,7 @@ public class AIController : MonoBehaviour
         fighter = GetComponent<Fighter>();
         combat = GetComponent<FighterCombat>();
         health = GetComponent<Health>();
+        stamina = GetComponent<Stamina>();
         if (target != null) targetHealth = target.GetComponent<Health>();
 
         if (target == null)
@@ -84,6 +94,18 @@ public class AIController : MonoBehaviour
         if (backOffTimer > 0f)
         {
             fighter.SetMoveInput(-toTarget);
+            return;
+        }
+
+        if (stamina != null)
+        {
+            if (stamina.Fraction < lowStamina) recovering = true;
+            else if (stamina.Fraction >= recoveredStamina) recovering = false;
+        }
+        if (recovering)
+        {
+            fighter.SetMoveInput(distance < recoverDistance ? -toTarget : 0f);
+            if (distance >= recoverDistance) fighter.Face(toTarget);
             return;
         }
 

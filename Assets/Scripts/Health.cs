@@ -9,6 +9,8 @@ public class Health : MonoBehaviour
     public int Max => maxHealth;
     public int Current { get; private set; }
     public bool IsDead => Current <= 0;
+    // Direction the last hit pushed this fighter: -1 = left, 1 = right, 0 = unknown.
+    public int LastHitDirection { get; private set; }
 
     // (current, max)
     public event Action<int, int> Changed;
@@ -20,10 +22,11 @@ public class Health : MonoBehaviour
         Current = maxHealth;
     }
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(int amount, int hitDirection = 0)
     {
         if (IsDead || amount <= 0) return;
 
+        LastHitDirection = hitDirection;
         Current = Mathf.Max(0, Current - amount);
         Changed?.Invoke(Current, maxHealth);
         Damaged?.Invoke();

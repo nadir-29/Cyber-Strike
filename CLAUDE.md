@@ -37,6 +37,13 @@
 - Both fighters start at 100 HP. Reducing the opponent to 0 HP wins.
 - An attack must never deal damage more than once per swing.
 - Each fighter has a health bar.
+- Knockout: the final blow launches the loser backward, with brief slow motion, a flicker and a topple.
+
+### Stamina
+
+- Each fighter has 100 stamina and a stamina bar under its health bar.
+- Punch costs 10, kick 18, jump 8. Without enough stamina the action doesn't happen and the bar flashes.
+- Regenerates 30/s after 0.6 s without spending.
 
 ### Ability pickups
 

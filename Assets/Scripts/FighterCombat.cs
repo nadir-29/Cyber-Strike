@@ -13,6 +13,7 @@ public class FighterCombat : MonoBehaviour
     public class Attack
     {
         public int damage;
+        public float staminaCost;
         [Tooltip("Seconds before the hitbox turns on.")]
         public float startup;
         [Tooltip("Seconds the hitbox stays on.")]
@@ -29,21 +30,24 @@ public class FighterCombat : MonoBehaviour
     // Timings match the 3-frame punch (12 fps) and kick (9 fps) animations.
     [SerializeField] Attack punch = new Attack
     {
-        damage = 6, startup = 0.083f, active = 0.083f, recovery = 0.083f,
+        damage = 6, staminaCost = 10f, startup = 0.083f, active = 0.083f, recovery = 0.083f,
         offset = new Vector2(0.72f, 0.27f), size = new Vector2(0.6f, 0.4f),
     };
     [SerializeField] Attack kick = new Attack
     {
-        damage = 10, startup = 0.111f, active = 0.111f, recovery = 0.111f,
+        damage = 10, staminaCost = 18f, startup = 0.111f, active = 0.111f, recovery = 0.111f,
         offset = new Vector2(0.8f, -0.42f), size = new Vector2(0.85f, 0.45f),
     };
 
     [Header("Hits")]
     [SerializeField] LayerMask hurtboxLayers;
     [SerializeField] float hitStun = 0.25f;
+    [Tooltip("Velocity the loser is launched with on the knockout blow (x is away from the hit).")]
+    [SerializeField] Vector2 knockoutLaunch = new Vector2(6f, 7f);
 
     Fighter fighter;
     Health health;
+    Stamina stamina;
     Attack current;
     float attackTime;
     float stunTime;
@@ -61,6 +65,7 @@ public class FighterCombat : MonoBehaviour
     {
         fighter = GetComponent<Fighter>();
         health = GetComponent<Health>();
+        stamina = GetComponent<Stamina>();
         hurtboxFilter = new ContactFilter2D();
         hurtboxFilter.SetLayerMask(hurtboxLayers);
 
@@ -86,6 +91,7 @@ public class FighterCombat : MonoBehaviour
     void StartAttack(Attack attack, AttackType type)
     {
         if (!CanAct) return;
+        if (stamina != null && !stamina.TrySpend(attack.staminaCost)) return;
 
         current = attack;
         attackTime = 0f;
@@ -123,7 +129,7 @@ public class FighterCombat : MonoBehaviour
             Health target = col.GetComponentInParent<Health>();
             // HashSet.Add returns false if this swing already hit the target.
             if (target == null || target == health || !hitThisSwing.Add(target)) continue;
-            target.TakeDamage(current.damage);
+            target.TakeDamage(current.damage, fighter.FacingDirection);
         }
     }
 
@@ -145,6 +151,8 @@ public class FighterCombat : MonoBehaviour
     {
         current = null;
         UpdateMovementLock();
+        int direction = health.LastHitDirection != 0 ? health.LastHitDirection : -fighter.FacingDirection;
+        fighter.Launch(new Vector2(knockoutLaunch.x * direction, knockoutLaunch.y));
         Debug.Log($"{name} is K.O.", this);
     }
 

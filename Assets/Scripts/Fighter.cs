@@ -9,6 +9,7 @@ public class Fighter : MonoBehaviour
     [Header("Movement")]
     [SerializeField] float moveSpeed = 7f;
     [SerializeField] float jumpVelocity = 12f;
+    [SerializeField] float jumpStaminaCost = 8f;
 
     [Header("Ground Check")]
     [SerializeField] LayerMask groundLayer;
@@ -16,6 +17,7 @@ public class Fighter : MonoBehaviour
 
     Rigidbody2D rb;
     Collider2D col;
+    Stamina stamina;
     float moveInput;
     bool jumpRequested;
 
@@ -28,6 +30,7 @@ public class Fighter : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
+        stamina = GetComponent<Stamina>();
         rb.freezeRotation = true;
         FacingDirection = transform.localScale.x < 0f ? -1 : 1;
 
@@ -54,6 +57,12 @@ public class Fighter : MonoBehaviour
             SetFacing(direction > 0 ? 1 : -1);
     }
 
+    // Sets velocity directly, e.g. for a knockback. Keeps its horizontal momentum until it lands.
+    public void Launch(Vector2 velocity)
+    {
+        rb.linearVelocity = velocity;
+    }
+
     void FixedUpdate()
     {
         IsGrounded = CheckGrounded();
@@ -61,10 +70,10 @@ public class Fighter : MonoBehaviour
         Vector2 velocity = rb.linearVelocity;
         if (!MovementLocked)
             velocity.x = moveInput * moveSpeed;
-        else if (IsGrounded)
-            velocity.x = 0f; // airborne attacks keep their momentum
+        else if (IsGrounded && velocity.y <= 0.01f)
+            velocity.x = 0f; // airborne attacks and launches keep their momentum
 
-        if (jumpRequested && IsGrounded && !MovementLocked)
+        if (jumpRequested && IsGrounded && !MovementLocked && (stamina == null || stamina.TrySpend(jumpStaminaCost)))
             velocity.y = jumpVelocity;
         jumpRequested = false;
 
