@@ -89,6 +89,9 @@ Scenes: `MainMenu` → `FighterSelect` → `Arena`.
 
 ## Play in a browser
 
+Online: https://nadir-29.github.io/Cyber-Strike/ (published from `WebBuild/` by `.github/workflows/pages.yml` on
+every push to `main`).
+
 `WebBuild/` holds a WebGL build. Browsers won't run it straight from disk (`file://`), so serve the folder:
 
 ```
