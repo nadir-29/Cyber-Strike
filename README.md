@@ -10,8 +10,9 @@ Built with Unity 6 (6000.6.7f1), 2D URP and the Input System package.
 | Action      | Input              |
 |-------------|--------------------|
 | Move        | A / D              |
-| Dash        | Double-tap A / D   |
+| Dash        | Left Shift + A / D |
 | Jump        | Space              |
+| Turn around | Jump + opposite direction (A / D) |
 | Punch       | Left mouse         |
 | Kick        | F                  |
 | Special     | Q (meter full)     |
@@ -19,6 +20,14 @@ Built with Unity 6 (6000.6.7f1), 2D URP and the Input System package.
 | Use ability | E                  |
 
 Menus: mouse, or Left/Right (A/D) + Enter on the fighter select screen; Esc goes back.
+
+## Movement and facing
+
+- On the ground you never turn around: A / D walk forward or backward (with a backward walk), always facing the same way.
+- To turn, jump and hold the opposite direction: you flip in mid-air and land facing the new way.
+- Jumps are low and snappy (about 3.6 units high).
+- Punches, kicks, the special and blocking all go the way you're facing, so if your opponent gets behind you, jump to turn around first.
+- The CPU follows the same rules: it has to jump to turn too (Hard does it almost instantly, Easy is slow to react).
 
 ## Blocking
 
@@ -35,8 +44,9 @@ Menus: mouse, or Left/Right (A/D) + Enter on the fighter select screen; Esc goes
 
 ## Dash
 
-- Double-tap A or D to dash that way: a quick burst along the ground with an afterimage trail.
-- About 1 s cooldown. You can't attack mid-dash, and a backdash keeps you facing your opponent.
+- Hold Left Shift and press A or D (or press Shift while moving) to dash that way: a quick burst along the ground with an afterimage trail.
+- Dashing away from the way you face is a backdash: you keep facing your opponent.
+- About 1 s cooldown. You can't attack, jump or turn mid-dash.
 - The CPU dashes too: to close the distance and to dodge your attacks (Hard does both a lot more).
 
 ## Opponents

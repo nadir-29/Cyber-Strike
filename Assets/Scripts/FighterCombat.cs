@@ -70,14 +70,14 @@ public class FighterCombat : MonoBehaviour
     {
         damage = 22, staminaCost = 0f, startup = 0.16f, active = 0.14f, recovery = 0.3f,
         offset = new Vector2(0.6f, 0.45f), size = new Vector2(0.95f, 1.4f),
-        launch = new Vector2(4f, 11f), launchStun = 0.75f, rise = 5f,
+        launch = new Vector2(4.5f, 13f), launchStun = 0.8f, rise = 7.5f,
     };
 
     [Header("Hits")]
     [SerializeField] LayerMask hurtboxLayers;
     [SerializeField] float hitStun = 0.25f;
     [Tooltip("Velocity the loser is launched with on the knockout blow (x is away from the hit).")]
-    [SerializeField] Vector2 knockoutLaunch = new Vector2(6f, 7f);
+    [SerializeField] Vector2 knockoutLaunch = new Vector2(7f, 10f);
 
     [Header("Block")]
     [Tooltip("Seconds raising the guard before it stops hits; the fighter is already locked in place meanwhile.")]

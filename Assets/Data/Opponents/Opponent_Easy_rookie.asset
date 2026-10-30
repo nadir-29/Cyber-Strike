@@ -58,4 +58,12 @@ MonoBehaviour:
   - {fileID: -3901877992710446848, guid: d6d8c5a86317dce4b903ba7714dcd0ca, type: 3}
   - {fileID: -5262443319085573609, guid: d64ccbc5ae8c82944be318f7289eb670, type: 3}
   - {fileID: 4182909873886400561, guid: d64ccbc5ae8c82944be318f7289eb670, type: 3}
+  - {fileID: -3417771083570040428, guid: 09ae3b00fe1da3146b014656a3dea5c4, type: 3}
+  - {fileID: -3628168805604702091, guid: 09ae3b00fe1da3146b014656a3dea5c4, type: 3}
+  - {fileID: -3253482010108466960, guid: 09ae3b00fe1da3146b014656a3dea5c4, type: 3}
+  - {fileID: -2615349157845925977, guid: 09ae3b00fe1da3146b014656a3dea5c4, type: 3}
+  - {fileID: -2879507642918526311, guid: 09ae3b00fe1da3146b014656a3dea5c4, type: 3}
+  - {fileID: 459048276393897393, guid: 09ae3b00fe1da3146b014656a3dea5c4, type: 3}
+  - {fileID: 6010637994028115956, guid: d7c8e8cd76e2da34e927f1c73a71e049, type: 3}
+  - {fileID: -1438906521348362856, guid: d7c8e8cd76e2da34e927f1c73a71e049, type: 3}
   aiProfile: {fileID: 11400000, guid: a407acc18c416cc408899b2a2484d769, type: 2}

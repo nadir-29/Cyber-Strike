@@ -3093,14 +3093,14 @@ MonoBehaviour:
     recovery: 0.3
     offset: {x: 0.6, y: 0.45}
     size: {x: 0.95, y: 1.4}
-    launch: {x: 4, y: 11}
-    launchStun: 0.75
-    rise: 5
+    launch: {x: 4.5, y: 13}
+    launchStun: 0.8
+    rise: 7.5
   hurtboxLayers:
     serializedVersion: 2
     m_Bits: 256
   hitStun: 0.25
-  knockoutLaunch: {x: 6, y: 7}
+  knockoutLaunch: {x: 7, y: 10}
   blockStartup: 0.1
   chipDamage: 0.2
 --- !u!114 &1006259704
@@ -3150,7 +3150,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Fighter
   moveSpeed: 7
-  jumpVelocity: 12
+  jumpVelocity: 13.1
+  gravityScale: 2.4
   jumpStaminaCost: 8
   dashSpeed: 17
   dashTime: 0.16
@@ -3174,7 +3175,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 2.4
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -3345,6 +3346,8 @@ MonoBehaviour:
   dashInChance: 0.25
   dashInDistance: 4
   dodgeChance: 0.15
+  dodgeWindow: 0.3
+  turnReactionTime: {x: 0.25, y: 0.5}
   blockChance: 0.35
   blockReactionTime: {x: 0.12, y: 0.25}
   blockHoldTime: {x: 0.35, y: 0.7}
@@ -4633,7 +4636,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 2.4
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -4778,7 +4781,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 164a75a215891c344828d1914e166667, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputController
-  doubleTapWindow: 0.25
 --- !u!114 &1505282030
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4792,7 +4794,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Fighter
   moveSpeed: 7
-  jumpVelocity: 12
+  jumpVelocity: 13.1
+  gravityScale: 2.4
   jumpStaminaCost: 8
   dashSpeed: 17
   dashTime: 0.16
@@ -4890,14 +4893,14 @@ MonoBehaviour:
     recovery: 0.3
     offset: {x: 0.6, y: 0.45}
     size: {x: 0.95, y: 1.4}
-    launch: {x: 4, y: 11}
-    launchStun: 0.75
-    rise: 5
+    launch: {x: 4.5, y: 13}
+    launchStun: 0.8
+    rise: 7.5
   hurtboxLayers:
     serializedVersion: 2
     m_Bits: 256
   hitStun: 0.25
-  knockoutLaunch: {x: 6, y: 7}
+  knockoutLaunch: {x: 7, y: 10}
   blockStartup: 0.1
   chipDamage: 0.2
 --- !u!114 &1505282035

@@ -2,7 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 // Reads keyboard/mouse input and forwards it to the Fighter and FighterCombat.
-// Double-tapping A or D asks the Fighter to dash that way.
+// Left Shift + A or D asks the Fighter to dash that way (either key first); against the facing it's a backdash.
+// A / D never turn the fighter on the ground: Fighter only turns it mid-air.
 [RequireComponent(typeof(Fighter), typeof(FighterCombat))]
 public class PlayerInputController : MonoBehaviour
 {
@@ -16,14 +17,9 @@ public class PlayerInputController : MonoBehaviour
     InputAction abilityAction;
     InputAction blockAction;
     InputAction specialAction;
-    InputAction dashLeftAction;
-    InputAction dashRightAction;
-
-    [Tooltip("Max real seconds between the two taps of a dash double-tap.")]
-    [SerializeField] float doubleTapWindow = 0.25f;
-
-    int lastTapDirection;
-    float lastTapTime = -1f;
+    InputAction dashAction;
+    InputAction leftAction;
+    InputAction rightAction;
 
     void Awake()
     {
@@ -42,8 +38,9 @@ public class PlayerInputController : MonoBehaviour
         abilityAction = new InputAction("Ability", InputActionType.Button, "<Keyboard>/e");
         blockAction = new InputAction("Block", InputActionType.Button, "<Mouse>/rightButton");
         specialAction = new InputAction("Special", InputActionType.Button, "<Keyboard>/q");
-        dashLeftAction = new InputAction("DashLeft", InputActionType.Button, "<Keyboard>/a");
-        dashRightAction = new InputAction("DashRight", InputActionType.Button, "<Keyboard>/d");
+        dashAction = new InputAction("Dash", InputActionType.Button, "<Keyboard>/leftShift");
+        leftAction = new InputAction("Left", InputActionType.Button, "<Keyboard>/a");
+        rightAction = new InputAction("Right", InputActionType.Button, "<Keyboard>/d");
     }
 
     void OnEnable()
@@ -55,9 +52,9 @@ public class PlayerInputController : MonoBehaviour
         abilityAction.Enable();
         blockAction.Enable();
         specialAction.Enable();
-        dashLeftAction.Enable();
-        dashRightAction.Enable();
-        lastTapTime = -1f;
+        dashAction.Enable();
+        leftAction.Enable();
+        rightAction.Enable();
     }
 
     void OnDisable()
@@ -69,8 +66,9 @@ public class PlayerInputController : MonoBehaviour
         abilityAction.Disable();
         blockAction.Disable();
         specialAction.Disable();
-        dashLeftAction.Disable();
-        dashRightAction.Disable();
+        dashAction.Disable();
+        leftAction.Disable();
+        rightAction.Disable();
         fighter.SetMoveInput(0f);
         combat.SetBlock(false);
     }
@@ -84,13 +82,15 @@ public class PlayerInputController : MonoBehaviour
         abilityAction.Dispose();
         blockAction.Dispose();
         specialAction.Dispose();
-        dashLeftAction.Dispose();
-        dashRightAction.Dispose();
+        dashAction.Dispose();
+        leftAction.Dispose();
+        rightAction.Dispose();
     }
 
     void Update()
     {
-        fighter.SetMoveInput(moveAction.ReadValue<float>());
+        float move = moveAction.ReadValue<float>();
+        fighter.SetMoveInput(move);
         combat.SetBlock(blockAction.IsPressed());
 
         if (jumpAction.WasPressedThisFrame())
@@ -104,21 +104,12 @@ public class PlayerInputController : MonoBehaviour
         if (specialAction.WasPressedThisFrame())
             combat.Special();
 
-        if (dashLeftAction.WasPressedThisFrame()) OnDirectionTap(-1);
-        if (dashRightAction.WasPressedThisFrame()) OnDirectionTap(1);
-    }
-
-    void OnDirectionTap(int direction)
-    {
-        bool doubleTap = direction == lastTapDirection && lastTapTime >= 0f
-                         && Time.unscaledTime - lastTapTime <= doubleTapWindow;
-        if (doubleTap)
-        {
-            fighter.Dash(direction);
-            lastTapTime = -1f; // a third tap starts a new double-tap
-            return;
-        }
-        lastTapDirection = direction;
-        lastTapTime = Time.unscaledTime;
+        // Shift pressed while holding a direction, or a direction pressed while holding Shift.
+        if (dashAction.WasPressedThisFrame() && Mathf.Abs(move) > 0.5f)
+            fighter.Dash(move > 0f ? 1 : -1);
+        else if (dashAction.IsPressed() && leftAction.WasPressedThisFrame())
+            fighter.Dash(-1);
+        else if (dashAction.IsPressed() && rightAction.WasPressedThisFrame())
+            fighter.Dash(1);
     }
 }

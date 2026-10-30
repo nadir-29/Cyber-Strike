@@ -57,6 +57,10 @@ public class AIProfile : ScriptableObject
     [Tooltip("Chance to dash away from an attack the target starts in range (doubled against its special), instead of blocking.")]
     [Range(0f, 1f)] public float dodgeChance = 0.15f;
 
+    [Header("Turning")]
+    [Tooltip("Seconds after the player gets behind it before it jumps to turn around (min, max). Fighters can only turn mid-air.")]
+    public Vector2 turnReactionTime = new Vector2(0.25f, 0.5f);
+
     [Header("Stat Bonus")]
     [Tooltip("Added to the fighter's max HP.")]
     [Min(0)] public int bonusHealth;

@@ -1716,8 +1716,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -380, y: -240}
-  m_SizeDelta: {x: 515, y: 500}
+  m_AnchoredPosition: {x: -380, y: -235}
+  m_SizeDelta: {x: 556.6, y: 501.4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1668212383
 MonoBehaviour:
@@ -1731,8 +1731,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e689161e2a3a6904f82fef297c6642cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelText
-  text: "CONTROLS\n\nA / D   MOVE   \nAA / DD DASH   \nSPACE   JUMP   \nLMB     PUNCH  \nF       KICK   \nQ       SPECIAL\nRMB     BLOCK  \nE       ABILITY"
-  pixelScale: 5
+  text: "CONTROLS\n\nA / D      MOVE   \nSHIFT+A/D  DASH   \nSPACE      JUMP   \nJUMP+BACK  TURN   \nLMB        PUNCH  \nF          KICK   \nQ          SPECIAL\nRMB        BLOCK  \nE          ABILITY"
+  pixelScale: 4.6
   letterSpacing: 1
   lineSpacing: 2
   autoSize: 1

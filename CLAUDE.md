@@ -29,13 +29,22 @@
 | Action      | Input         |
 |-------------|---------------|
 | Move        | A / D         |
-| Dash        | Double-tap A / D |
+| Dash        | Left Shift + A / D |
 | Jump        | Space         |
+| Turn around | Jump, then hold the opposite direction (A / D) mid-air |
 | Punch       | Left mouse    |
 | Kick        | F             |
 | Special (cyber uppercut) | Q (meter full) |
 | Block       | Hold right mouse |
 | Use ability | E             |
+
+### Movement and facing
+
+- Walk at 7 u/s. On the ground a fighter never turns: holding the direction it faces walks forward, the other way walks backward (`WalkBack` animation, the fighter keeps facing the same way).
+- Turning only happens in the air: hold the opposite direction during a jump and the fighter flips mid-air and lands facing the new way. The only other facing change is `Fighter.SnapFacing`, used by `MatchManager` for the victory pose, never in gameplay.
+- Jump: `jumpVelocity` 13.1 with `gravityScale` 2.4 (applied to the Rigidbody2D on Awake), about 3.65 units high and ~1.1 s in the air; low and snappy, not floaty.
+- A fighter never rests on the other one's head: it slides off sideways (`slideOffSpeed` 5; toward the arena centre if stacked dead-on).
+- Attacks, hitboxes, the special, launches and block-from-front all use `Fighter.FacingDirection`, never the last key pressed. A fighter with its opponent behind it must jump to turn before it can hit or block them.
 
 ### Combat
 
@@ -59,16 +68,16 @@
 
 - Each fighter has a special meter (`SpecialMeter`, 0–100) shown as a magenta bar under its stamina bar (`SpecialBar`). It fills from damage dealt (2 per point, hits that land) and damage taken (1.5 per point, including blocked chip damage). The uppercut itself builds no meter for its user.
 - Full meter: the bar flashes white, then pulses, and a "ready" chime plays.
-- Q (meter full, on the ground, free to act) spends the whole meter on the cyber uppercut (`FighterCombat.Special`, `AttackType.Special`): 22 damage (x Double Damage / damage bonus), the attacker hops up with it, and a clean hit launches the target up and away into a 0.75 s hit stun. Startup 0.16 s, active 0.14 s, recovery 0.3 s; one hit per swing.
+- Q (meter full, on the ground, free to act) spends the whole meter on the cyber uppercut (`FighterCombat.Special`, `AttackType.Special`): 22 damage (x Double Damage / damage bonus), the attacker hops up with it, and a clean hit launches the target up and away (`launch` 4.5, 13) into a 0.8 s hit stun (`rise` 7.5 for the attacker's hop). Startup 0.16 s, active 0.14 s, recovery 0.3 s; one hit per swing.
 - Blocked from the front it is chip damage only (20%), no launch, no stun, like any blocked hit.
 - Feedback: charged-fist uppercut animation, pink afterimages and a fountain of neon sparks from the fist (`AfterimageTrail`), a big pink/cyan burst with a pillar of streaks, heavy shake and a 0.11 s hit-pause on hit (`CombatFeedback`), `special.wav` on use and `special_hit.wav` instead of the hit sound.
 
 ### Dash
 
-- Double-tap A or D (within 0.25 s) to dash that way: 17 u/s for 0.16 s (~2.7 units) along the ground, keeping the current facing (so a backdash keeps facing the opponent). 1 s cooldown after it ends.
-- Ground only, and not while attacking, stunned or guarding. No attacking, jumping, steering or guarding mid-dash. Getting hit cuts it short.
-- Feedback: dash lunge animation, afterimage trail (P1 cyan, the CPU in its opponent's accent colour, set by `OpponentLoader`), `dash.wav`.
-- The rule lives in `Fighter.Dash`; `PlayerInputController` only detects the double-tap.
+- Left Shift + A or D dashes that way (Shift while holding A/D, or A/D pressed while Shift is held): 17 u/s for 0.16 s (~2.7 units) along the ground, keeping the current facing, so dashing away from the facing direction is a backdash. 1 s cooldown after it ends. There is no double-tap dash.
+- Ground only, and not while attacking, stunned or guarding. No attacking, jumping, steering, turning or guarding mid-dash. Getting hit cuts it short.
+- Feedback: forward dash lunge or backdash (leaning back, guard up) animation, afterimage trail (P1 cyan, the CPU in its opponent's accent colour, set by `OpponentLoader`), `dash.wav`.
+- The rule lives in `Fighter.Dash`; `PlayerInputController` only reads Shift + direction.
 
 ### Stamina
 
@@ -89,18 +98,19 @@
 ### AI
 
 - Approaches the player, attacks when in range, and goes for pickups.
+- Follows the same facing rules as the player: it never turns on the ground. When the player gets behind it, it waits its turn reaction time (`AIProfile.turnReactionTime`) and then jumps, steering toward the player mid-air to turn. It only attacks, fires its special or blocks while facing the player (a raised guard drops if the player gets behind it). Easy is slow to turn (0.7–1.2 s), Medium 0.3–0.55 s, Hard almost instantly (0.06–0.15 s).
 - Special: fires the uppercut when its meter is full. A smart AI waits until the player is in range and not guarding; a careless one also throws it into a guard or from a bit too far and whiffs. Easy is careless and hesitant, Hard fires almost every time it has a clean opening.
 - Dash: dashes in when approaching the player or a pickup from more than 4 units away, and may dash away (dodge) from an attack the player starts in front of it, twice as likely against the special. A dodge waits up to 0.3 s for the AI to be free to dash, then gives up.
 - Blocks: may raise its guard (after its block reaction time) when the player starts an attack in front of it, after taking a hit, or pre-emptively while waiting to attack. It drops the guard after its hold time and then waits out a cooldown, so it never blocks forever. Easy rarely blocks, Medium sometimes, Hard often and fast.
-- Difficulty comes from an `AIProfile` ScriptableObject per opponent: reaction delay, attack frequency, retreat chances, how fast it notices pickups, how smartly it uses abilities, blocking (chance, reaction time, hold time, cooldown), special use (chance, smarts), dashing (dash-in chance, dodge chance), plus an HP / damage bonus. `AIController` only reads the profile; the stat bonus is applied to `Health` / `FighterCombat` by `OpponentLoader`.
+- Difficulty comes from an `AIProfile` ScriptableObject per opponent: reaction delay, attack frequency, retreat chances, how fast it notices pickups, how smartly it uses abilities, blocking (chance, reaction time, hold time, cooldown), special use (chance, smarts), dashing (dash-in chance, dodge chance), turning (turn reaction time), plus an HP / damage bonus. `AIController` only reads the profile; the stat bonus is applied to `Health` / `FighterCombat` by `OpponentLoader`.
 
 ### CPU opponents (fighter select = difficulty)
 
 | Difficulty | Name        | Look                                              | Profile highlights                                   |
 |------------|-------------|---------------------------------------------------|------------------------------------------------------|
-| Easy (1★)  | JINX VALE   | Street punk rookie: pink/green mohawk, tank top, tattoos, lime shades | Slow reactions, hesitant, retreats often, careless abilities, rarely blocks (10%, slow), careless special (35% / smarts 0.15), rarely dashes (10% in, 4% dodge) |
-| Medium (2★)| SGT. HALDEN | Corporate security enforcer: slate armor, sealed helmet, amber visor | The original AI tuning, blocks sometimes (55%, 0.08–0.18 s), special 60% / smarts 0.6, dashes 25% in, 12% dodge |
-| Hard (3★)  | OBSIDIAN    | Elite cyborg assassin: bulky gunmetal armor, back unit, skull cap, red eyes | Near-instant reactions, relentless, smart abilities, blocks often and fast (70%, 0.02–0.07 s), smart special (90% / smarts 0.95), dashes 40% in, 25% dodge, +15 HP, 1.1x damage |
+| Easy (1★)  | JINX VALE   | Street punk rookie: pink/green mohawk, tank top, tattoos, lime shades | Slow reactions, hesitant, retreats often, careless abilities, rarely blocks (10%, slow), careless special (35% / smarts 0.15), rarely dashes (10% in, 4% dodge), slow to turn around (0.7–1.2 s) |
+| Medium (2★)| SGT. HALDEN | Corporate security enforcer: slate armor, sealed helmet, amber visor | The original AI tuning, blocks sometimes (55%, 0.08–0.18 s), special 60% / smarts 0.6, dashes 25% in, 12% dodge, turns in 0.3–0.55 s |
+| Hard (3★)  | OBSIDIAN    | Elite cyborg assassin: bulky gunmetal armor, back unit, skull cap, red eyes | Near-instant reactions, relentless, smart abilities, blocks often and fast (70%, 0.02–0.07 s), smart special (90% / smarts 0.95), dashes 40% in, 25% dodge, turns almost instantly (0.06–0.15 s), +15 HP, 1.1x damage |
 
 - Data: `Assets/Data/Opponents/` holds `OpponentRoster`, one `OpponentData` (name, bio, stars, portrait, accent, sprites, AI profile) and one `AIProfile` per opponent.
 - Art: `Tools/generate_art.py` draws each opponent in the shared fighter style (`OPPONENT_PALETTES`) into `Assets/Art/Fighters/Opponents/` (sheet, KO strip, portrait). Sheets use the same slicing as `fighter_ai.png`.
@@ -119,7 +129,7 @@
 ### Art and audio
 
 - Player look (`PLAYER_PALETTE`, style "rocker" in `Tools/generate_art.py`): original long-haired rocker merc with shoulder-length black hair, red-lensed aviators, stubble, black armored vest over bare arms, studded belt, brown leather pants and a gunmetal cyber arm (front arm) lit with the P1 cyan.
-- Animations: idle, walk, jump, punch, kick, special (cyber uppercut: charge, rise, apex with the fist ablaze, recover; `fighter_<who>_special.png`), dash (2-frame lunge loop; `fighter_<who>_dash.png`), hurt, block (+ block impact), KO, victory. Opponents' `OpponentData.sprites` include their special and dash strips.
+- Animations: idle, walk, walk back (6-frame backward walk, guard up; `fighter_<who>_walkback.png`), jump, punch, kick, special (cyber uppercut: charge, rise, apex with the fist ablaze, recover; `fighter_<who>_special.png`), dash (2-frame lunge loop; `fighter_<who>_dash.png`), backdash (2-frame lean-back loop; `fighter_<who>_backdash.png`), hurt, block (+ block impact), KO, victory. The Walk and Dash animator states are 1D blend trees on the `Backward` float (`FighterAnimator`, from `Fighter.IsMovingBackward`) picking the forward or backward clip. Opponents' `OpponentData.sprites` include their special, dash, walk back and backdash strips.
 - Victory poses (`fighter_<who>_win.png`, 8 frames: 4 intro played once by `Win`, 4 looped by `WinLoop`; fired by the `Win` animator trigger via `FighterAnimator.PlayVictory`), one per personality (`victory_frames` in `Tools/generate_art.py`):
   - Player (rocker): wind-up, cyber fist thrown at the sky, then headbangs while air-guitaring with the other hand.
   - JINX VALE (cocky): open-armed shrug, a hop with arms in a V, then a "come on" beckon with one hand behind the head, grinning (tongue out every other beat).

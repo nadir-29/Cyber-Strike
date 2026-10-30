@@ -31,5 +31,6 @@ MonoBehaviour:
   specialSmarts: 0.6
   dashInChance: 0.25
   dodgeChance: 0.12
+  turnReactionTime: {x: 0.3, y: 0.55}
   bonusHealth: 0
   damageMultiplier: 1

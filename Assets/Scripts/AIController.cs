@@ -2,7 +2,10 @@ using UnityEngine;
 
 // Drives a Fighter for the computer opponent: approaches the target (dashing in from afar), attacks in range,
 // sometimes backs off, goes for ability pickups, uses its ability when useful, fires its special when the
-// meter is full and dashes away from incoming attacks. Like PlayerInputController it only issues inputs; gameplay
+// meter is full and dashes away from incoming attacks.
+// It plays by the same facing rules as the player: it can't turn on the ground, so when the target gets behind
+// it, it jumps (after its turn reaction time) and steers toward the target mid-air to turn around. It only
+// attacks, blocks and fires its special while facing the target. Like PlayerInputController it only issues inputs; gameplay
 // rules stay in Fighter and FighterCombat.
 // Decisions are re-evaluated once per reaction interval, so the AI reacts with a delay.
 // An AIProfile (set in the Inspector or by OpponentLoader) overrides the tuning below per opponent.
@@ -65,6 +68,10 @@ public class AIController : MonoBehaviour
     [Tooltip("Seconds a dodge stays pending after the reaction delay, waiting for the fighter to be free to dash.")]
     [SerializeField] float dodgeWindow = 0.3f;
 
+    [Header("Turning")]
+    [Tooltip("Seconds after the target gets behind it before it jumps to turn around (min, max).")]
+    [SerializeField] Vector2 turnReactionTime = new Vector2(0.25f, 0.5f);
+
     [Header("Blocking")]
     [Tooltip("Chance to raise the guard when the target starts an attack in range or after taking a hit (a quarter of it, per decision, to guard pre-emptively when close).")]
     [SerializeField, Range(0f, 1f)] float blockChance = 0.35f;
@@ -95,6 +102,8 @@ public class AIController : MonoBehaviour
     bool guarding;
     bool dodgePending;
     float dodgeTimer;
+    float turnTimer = -1f;
+    bool headingForPickup;
 
     void Awake()
     {
@@ -140,6 +149,7 @@ public class AIController : MonoBehaviour
         specialSmarts = profile.specialSmarts;
         dashInChance = profile.dashInChance;
         dodgeChance = profile.dodgeChance;
+        turnReactionTime = profile.turnReactionTime;
     }
 
     void OnEnable()
@@ -156,6 +166,7 @@ public class AIController : MonoBehaviour
         fighter.SetMoveInput(0f);
         DropGuard();
         dodgePending = false;
+        turnTimer = -1f;
     }
 
     void Update()
@@ -173,11 +184,44 @@ public class AIController : MonoBehaviour
         thinkTimer -= dt;
         blockCooldownTimer -= dt;
         UpdateDodge(dt);
-        if (UpdateGuard(dt)) return; // guard up (or about to go up): nothing else to decide
-        if (thinkTimer > 0f) return;
+        UpdateTurn(dt);
+        // Guard up (or about to go up): nothing else to decide.
+        if (!UpdateGuard(dt) && thinkTimer <= 0f)
+        {
+            thinkTimer = Roll(reactionTime);
+            Think();
+        }
+        SteerInAir();
+    }
 
-        thinkTimer = Roll(reactionTime);
-        Think();
+    int ToTarget => target.transform.position.x >= transform.position.x ? 1 : -1;
+    bool FacesTarget => fighter.FacingDirection == ToTarget;
+
+    // The target is behind it: after the turn reaction time, jump so it can turn around mid-air.
+    void UpdateTurn(float dt)
+    {
+        if (FacesTarget || !fighter.IsGrounded)
+        {
+            turnTimer = -1f;
+            return;
+        }
+        if (turnTimer < 0f)
+        {
+            turnTimer = Roll(turnReactionTime);
+            return;
+        }
+        turnTimer -= dt;
+        if (turnTimer > 0f || !combat.CanAct || fighter.IsDashing) return;
+        fighter.Jump();
+        turnTimer = -1f;
+    }
+
+    // In the air it steers toward the target, which turns it to face the target (unless it is jumping
+    // for a pickup).
+    void SteerInAir()
+    {
+        if (!fighter.IsGrounded && !headingForPickup)
+            fighter.SetMoveInput(ToTarget);
     }
 
     void Think()
@@ -185,6 +229,7 @@ public class AIController : MonoBehaviour
         float dx = target.transform.position.x - transform.position.x;
         float distance = Mathf.Abs(dx);
         int toTarget = dx >= 0f ? 1 : -1;
+        headingForPickup = false;
 
         MaybeUseAbility(distance);
         if (MaybeSpecial(distance, toTarget)) return;
@@ -206,7 +251,6 @@ public class AIController : MonoBehaviour
         if (recovering)
         {
             fighter.SetMoveInput(distance < recoverDistance ? -toTarget : 0f);
-            if (distance >= recoverDistance) fighter.Face(toTarget);
             return;
         }
 
@@ -220,7 +264,7 @@ public class AIController : MonoBehaviour
         }
 
         fighter.SetMoveInput(0f);
-        fighter.Face(toTarget);
+        if (!FacesTarget) return; // its back is turned: UpdateTurn jumps it around first
 
         // Waiting on its own attack cooldown up close: sometimes keep the guard up instead.
         if (attackTimer > 0f && Random.value < blockChance * 0.25f && TryStartBlock(0f)) return;
@@ -259,6 +303,7 @@ public class AIController : MonoBehaviour
         if (distance <= kickRange && !recovering && Random.value < fightOverPickupChance) return false;
 
         int toPickup = nearest.transform.position.x >= transform.position.x ? 1 : -1;
+        headingForPickup = true;
         fighter.SetMoveInput(toPickup);
         if (best > dashInDistance && Random.value < dashInChance) fighter.Dash(toPickup);
 
@@ -291,19 +336,19 @@ public class AIController : MonoBehaviour
     // Returns true if it fired.
     bool MaybeSpecial(float distance, int toTarget)
     {
-        if (!combat.CanSpecial || Random.value > specialChance) return false;
+        if (!combat.CanSpecial || !FacesTarget || Random.value > specialChance) return false;
 
         bool careless = Random.value > specialSmarts;
         bool open = distance <= specialRange && (targetCombat == null || !targetCombat.IsGuarding);
         if (!(open || (careless && distance <= specialRange * 2f))) return false;
 
         fighter.SetMoveInput(0f);
-        fighter.Face(toTarget);
         combat.Special();
         return true;
     }
 
-    // The target started an attack: maybe dash away from it, or raise the guard, after a reaction delay.
+    // The target started an attack: maybe dash away from it, or raise the guard (only when facing it, since
+    // the guard only covers the front), after a reaction delay.
     void OnTargetAttack(AttackType type)
     {
         if (target == null || health.IsDead) return;
@@ -342,7 +387,7 @@ public class AIController : MonoBehaviour
 
     bool TryStartBlock(float delay)
     {
-        if (guarding || blockDelayTimer >= 0f || blockCooldownTimer > 0f) return false;
+        if (guarding || blockDelayTimer >= 0f || blockCooldownTimer > 0f || !FacesTarget) return false;
         blockDelayTimer = delay;
         return true;
     }
@@ -355,12 +400,18 @@ public class AIController : MonoBehaviour
             blockDelayTimer -= dt;
             if (blockDelayTimer >= 0f) return false;
             fighter.SetMoveInput(0f);
-            fighter.Face(target.transform.position.x >= transform.position.x ? 1 : -1);
             combat.SetBlock(true);
             guarding = true;
             blockHoldTimer = Roll(blockHoldTime);
         }
         if (!guarding) return false;
+
+        // The target got behind it: the guard only covers the front, so drop it and go turn around.
+        if (!FacesTarget)
+        {
+            DropGuard();
+            return false;
+        }
 
         // The hold only counts down while the guard is up or could be (not while stunned or mid-attack),
         // so a guard raised just before a hit still covers the follow-ups. It always runs out eventually.

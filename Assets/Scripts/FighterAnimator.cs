@@ -16,6 +16,7 @@ public class FighterAnimator : MonoBehaviour
     static readonly int WinHash = Animator.StringToHash("Win");
     static readonly int SpecialHash = Animator.StringToHash("Special");
     static readonly int DashingHash = Animator.StringToHash("Dashing");
+    static readonly int BackwardHash = Animator.StringToHash("Backward");
 
     Fighter fighter;
     FighterCombat combat;
@@ -57,6 +58,8 @@ public class FighterAnimator : MonoBehaviour
         animator.SetBool(DeadHash, health != null && health.IsDead);
         animator.SetBool(BlockingHash, combat != null && combat.IsGuarding);
         animator.SetBool(DashingHash, fighter.IsDashing);
+        // 0 = forward walk / dash, 1 = backward walk / backdash (blend trees pick one clip).
+        animator.SetFloat(BackwardHash, fighter.IsMovingBackward ? 1f : 0f);
     }
 
     void OnAttackStarted(AttackType type)

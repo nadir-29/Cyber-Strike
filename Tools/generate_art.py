@@ -19,6 +19,8 @@ KO strips (fighter_<who>_ko.png, 192x64): reel(flash), flung, limp (visor off).
 Block strips (fighter_<who>_block.png, 192x64): raise guard, hold guard, impact recoil.
 Special strips (fighter_<who>_special.png, 256x64): cyber uppercut charge, rise, apex (fist ablaze), recover.
 Dash strips (fighter_<who>_dash.png, 128x64): two low lunge frames with the arms swept back.
+Walk-back strips (fighter_<who>_walkback.png, 384x64): 6-frame backpedal, guard up, legs cycling in reverse.
+Backdash strips (fighter_<who>_backdash.png, 128x64): two low hop-back frames leaning away, guard high.
 Victory strips (fighter_<who>_win.png, 512x64): 4 intro frames played once, then a 4-frame loop; a unique
   pose per personality (rocker fist + headbang, punk cocky beckon, enforcer salute, cyborg point + eye flare).
 Assets/Art/VFX/block_shield.png: cyan hex-energy shield shown in front of a fighter when a hit is blocked.
@@ -613,6 +615,27 @@ def dash_frames():
     ]
 
 
+def walkback_frames():
+    """Backward walk: a cautious backpedal, upright with the guard up and shorter strides, the leg cycle
+    run in reverse so the feet step back."""
+    frames = []
+    for i in range(6):
+        p = -2 * math.pi * i / 6
+        s = math.sin(p)
+        frames.append(pose(lean=-3, ft=20 * s, fs=20 * s - 18 * max(0, -math.cos(p)),
+                           bt=-20 * s, bs=-20 * s - 18 * max(0, math.cos(p)),
+                           fa=46 + 4 * s, ff=162, ba=24 - 4 * s, bf=152))
+    return frames
+
+
+def backdash_frames():
+    """Backdash: a low hop back, leaning away with the guard high, front leg trailing forward."""
+    return [
+        pose(lean=-16, hip_y=40, ft=48, fs=8, bt=-40, bs=-12, fa=60, ff=165, ba=40, bf=158),
+        pose(lean=-18, hip_y=41, ft=56, fs=14, bt=-46, bs=-18, fa=64, ff=168, ba=42, bf=160),
+    ]
+
+
 WIN_INTRO = 4  # victory strip: 4 one-shot intro frames, then a 4-frame loop held until the result screen
 
 
@@ -960,6 +983,14 @@ def make_dash_strip(pal):
     return make_ko_strip(pal, dash_frames())
 
 
+def make_walkback_strip(pal):
+    return make_ko_strip(pal, walkback_frames())
+
+
+def make_backdash_strip(pal):
+    return make_ko_strip(pal, backdash_frames())
+
+
 def make_win_strip(pal):
     return make_ko_strip(pal, victory_frames(pal.get("style", "agent")))
 
@@ -1032,6 +1063,8 @@ def make_opponents(out):
         make_win_strip(pal).save(out / f"fighter_{oid}_win.png")
         make_special_strip(pal).save(out / f"fighter_{oid}_special.png")
         make_dash_strip(pal).save(out / f"fighter_{oid}_dash.png")
+        make_walkback_strip(pal).save(out / f"fighter_{oid}_walkback.png")
+        make_backdash_strip(pal).save(out / f"fighter_{oid}_backdash.png")
         make_portrait(pal).save(out / f"portrait_{oid}.png")
 
 
@@ -1150,6 +1183,8 @@ def main():
     for who, pal in (("player", PLAYER_PALETTE), ("ai", AI_PALETTE)):
         make_special_strip(pal).save(ART / "Fighters" / f"fighter_{who}_special.png")
         make_dash_strip(pal).save(ART / "Fighters" / f"fighter_{who}_dash.png")
+        make_walkback_strip(pal).save(ART / "Fighters" / f"fighter_{who}_walkback.png")
+        make_backdash_strip(pal).save(ART / "Fighters" / f"fighter_{who}_backdash.png")
     make_opponents(ART / "Fighters" / "Opponents")
     (ART / "VFX").mkdir(parents=True, exist_ok=True)
     make_block_shield().save(ART / "VFX" / "block_shield.png")
@@ -1198,6 +1233,12 @@ def main():
             moves.alpha_composite(make_special_strip(pal), (0, FRAME * i))
             moves.alpha_composite(make_dash_strip(pal), (FRAME * 4, FRAME * i))
         moves.resize((moves.width * 3, moves.height * 3), Image.NEAREST).save(out / "moves_preview.png")
+        back = Image.new("RGBA", (FRAME * 14, FRAME * len(pals)), (60, 60, 70, 255))
+        for i, pal in enumerate(pals):
+            back.alpha_composite(make_sheet(pal).crop((0, FRAME, FRAME * 6, FRAME * 2)), (0, FRAME * i))
+            back.alpha_composite(make_walkback_strip(pal), (FRAME * 6, FRAME * i))
+            back.alpha_composite(make_backdash_strip(pal), (FRAME * 12, FRAME * i))
+        back.resize((back.width * 2, back.height * 2), Image.NEAREST).save(out / "back_preview.png")
 
 
 if __name__ == "__main__":

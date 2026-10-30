@@ -173,7 +173,7 @@ public class MatchManager : MonoBehaviour
             for (float time = 0f; time < landingTimeout && !fighter.IsGrounded; time += Time.unscaledDeltaTime)
                 yield return null;
             if (loser != null)
-                fighter.Face(loser.transform.position.x >= winner.transform.position.x ? 1 : -1);
+                fighter.SnapFacing(loser.transform.position.x >= winner.transform.position.x ? 1 : -1);
         }
 
         FighterAnimator animator = winner.GetComponent<FighterAnimator>();
