@@ -98,6 +98,7 @@
 
 ### Art and audio
 
+- Player look (`PLAYER_PALETTE`, style "rocker" in `Tools/generate_art.py`): original long-haired rocker merc with shoulder-length black hair, red-lensed aviators, stubble, black armored vest over bare arms, studded belt, brown leather pants and a gunmetal cyber arm (front arm) lit with the P1 cyan.
 - Animations: idle, walk, jump, punch, kick, hurt, block (+ block impact), KO.
 - SFX: punch, kick, hit, deflect (blocked hit), pickup, ability, win/loss.
 - `README.md` also lists the controls; keep it in sync with the Controls table.

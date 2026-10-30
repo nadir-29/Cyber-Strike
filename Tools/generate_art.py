@@ -430,10 +430,14 @@ def make_near(rng):
 # ---------------------------------------------------------------- fighter
 
 PLAYER_PALETTE = dict(
-    jacket=(54, 42, 98), jacket_hi=(92, 76, 150), jacket_dark=(32, 24, 60),
-    pants=(30, 30, 46), pants_dark=(20, 20, 32), boots=(22, 20, 30),
-    skin=(226, 176, 142), skin_dark=(186, 134, 112), hair=(36, 30, 52),
-    glove=(40, 40, 58), accent=(40, 240, 255), accent_hi=(210, 255, 255),
+    style="rocker",
+    jacket=(36, 36, 44), jacket_hi=(78, 78, 92), jacket_dark=(20, 20, 26),
+    sleeve_dark=(176, 126, 98), back_glove=(196, 146, 114), tattoo=(60, 66, 80),
+    cyber=(98, 106, 122), cyber_hi=(176, 186, 204), cyber_dark=(52, 56, 68),
+    pants=(98, 60, 42), pants_dark=(68, 42, 30), boots=(26, 22, 24), belt=(70, 46, 34), stud=(200, 200, 210),
+    skin=(216, 162, 128), skin_dark=(170, 120, 96), stubble=(146, 104, 88), hair=(22, 20, 28), hair_hi=(54, 50, 66),
+    lens=(200, 40, 50), lens_hi=(255, 150, 140), frame=(150, 120, 60),
+    glove=(98, 106, 122), accent=(40, 240, 255), accent_hi=(210, 255, 255),
 )
 AI_PALETTE = dict(
     jacket=(112, 26, 40), jacket_hi=(164, 48, 62), jacket_dark=(70, 14, 28),
@@ -588,12 +592,19 @@ def draw_fighter(pal, p):
             d.rectangle([kx - 1, ky - 1, kx + 1, ky + 1], fill=pal["jacket_hi"])
             d.point((kx, ky), fill=pal["accent"])
 
-    def arm(upper_angle, fore_angle, color, glove, glow):
+    def arm(upper_angle, fore_angle, color, glove, glow, cyber=False):
         elbow = step(shoulder, upper_angle, UPPER)
         hand = step(elbow, fore_angle, FORE)
         segment(d, shoulder, elbow, 5 + limb, color)
         segment(d, elbow, hand, 4 + limb, color)
-        if "tattoo" in pal:  # ink bands on the bare arm
+        if cyber:  # plated cyber arm: highlight ridge, dark plate seams, neon elbow joint
+            d.line([ipt(step(shoulder, upper_angle, 1)), ipt(step(shoulder, upper_angle, UPPER - 2))],
+                   fill=pal["cyber_hi"])
+            d.line([ipt(step(elbow, fore_angle, 1)), ipt(step(elbow, fore_angle, FORE - 2))], fill=pal["cyber_hi"])
+            d.point(ipt(step(shoulder, upper_angle, UPPER * 0.5)), fill=pal["cyber_dark"])
+            d.point(ipt(step(elbow, fore_angle, FORE * 0.55)), fill=pal["cyber_dark"])
+            d.point(ipt(elbow), fill=pal["accent"])
+        elif "tattoo" in pal:  # ink bands on the bare arm
             a, b = ipt(shoulder), ipt(elbow)
             for t in (0.35, 0.65):
                 d.point((round(a[0] + (b[0] - a[0]) * t), round(a[1] + (b[1] - a[1]) * t)), fill=pal["tattoo"])
@@ -615,8 +626,15 @@ def draw_fighter(pal, p):
             d.point((bx - 2, cy), fill=pal["accent"])
             d.point((bx + 1, cy), fill=pal["accent"])
 
+    if style == "rocker":  # long hair falling behind the shoulders
+        hx0, hy0 = ipt(head)
+        d.polygon([(hx0 - 6, hy0 - 4), (hx0 + 2, hy0 - 6), (hx0 + 1, hy0 + 3), (hx0 - 1, hy0 + 7),
+                   (hx0 - 4, hy0 + 8), (hx0 - 8, hy0 + 7), (hx0 - 8, hy0 + 1)], fill=pal["hair"])
+        d.line([(hx0 - 6, hy0 + 1), (hx0 - 6, hy0 + 6)], fill=pal["hair_hi"])
+
     # Back limbs, darker.
-    arm(p["ba"], p["bf"], pal.get("sleeve_dark", pal["jacket_dark"]), pal["glove"], pal["accent"])
+    arm(p["ba"], p["bf"], pal.get("sleeve_dark", pal["jacket_dark"]), pal.get("back_glove", pal["glove"]),
+        pal["accent"])
     leg("b", pal["pants_dark"], pal["accent"])
 
     # Torso: jacket wedge, belt, glowing front seam.
@@ -632,6 +650,14 @@ def draw_fighter(pal, p):
                   fill=pal["jacket_hi"])  # popped collar
     elif style == "punk":  # tank top: an overall strap instead of a collar
         d.line([off(neck, 3), off(hip, 0)], fill=pal["pants"])
+    elif style == "rocker":  # quilted armored vest: shoulder strap, quilting rows, studded leather belt
+        d.line([off(neck, -nw), off(neck, nw - 1)], fill=pal["jacket_hi"])
+        for t in (0.35, 0.6):
+            row = (neck[0] + (hip[0] - neck[0]) * t, neck[1] + (hip[1] - neck[1]) * t)
+            d.line([off(row, -nw + 2), off(row, nw - 3)], fill=pal["jacket_dark"])
+        d.line([off(hip, -hw), off(hip, hw)], fill=pal["belt"], width=2)
+        for k in (-3, -1, 1, 3):
+            d.point(off(hip, k), fill=pal["stud"])
     else:  # chest plate and a high armored collar
         mid = ((hip[0] + neck[0]) / 2, (hip[1] + neck[1]) / 2)
         d.line([off(mid, -3), off(mid, 3)], fill=pal["jacket_hi"])
@@ -668,6 +694,23 @@ def draw_fighter(pal, p):
         if not p["dazed"]:
             d.point((hx + 5, hy), fill=pal["accent_hi"])
             d.point((hx - 3, hy - 4), fill=pal["accent"])
+    elif style == "rocker":
+        # Stubbled face under a long black mane with a side part, red-lensed aviators.
+        d.ellipse([hx - 5, hy - 5, hx + 5, hy + 6], fill=pal["skin"])
+        d.line([hx - 5, hy + 3, hx - 3, hy + 6], fill=pal["skin_dark"])
+        d.line([hx - 1, hy + 5, hx + 3, hy + 5], fill=pal["stubble"])     # jaw stubble
+        d.point((hx + 4, hy + 4), fill=pal["stubble"])
+        d.point((hx + 1, hy + 3), fill=pal["stubble"])                     # moustache
+        d.point((hx + 3, hy + 3), fill=pal["skin_dark"])                   # mouth
+        d.polygon([(hx - 6, hy + 1), (hx - 6, hy - 5), (hx - 2, hy - 8), (hx + 3, hy - 8), (hx + 6, hy - 5),
+                   (hx + 6, hy - 3), (hx + 2, hy - 5), (hx - 1, hy - 4), (hx - 3, hy + 2)], fill=pal["hair"])
+        d.line([hx - 2, hy - 7, hx + 3, hy - 7], fill=pal["hair_hi"])     # sheen
+        lens = lerp(pal["lens"], OUTLINE[:3], 0.5) if p["dazed"] else pal["lens"]
+        d.line([hx - 1, hy - 2, hx + 6, hy - 2], fill=pal["frame"])       # aviator bar
+        d.rectangle([hx, hy - 1, hx + 2, hy], fill=lens)
+        d.rectangle([hx + 4, hy - 1, hx + 6, hy], fill=lens)
+        if not p["dazed"]:
+            d.point((hx + 4, hy - 1), fill=pal["lens_hi"])
     elif style == "punk":
         # Shaved sides, tall two-tone mohawk, slim shades, earring.
         d.ellipse([hx - 5, hy - 5, hx + 5, hy + 6], fill=pal["skin"])
@@ -695,7 +738,10 @@ def draw_fighter(pal, p):
             d.line([hx + 1, hy - 2, hx + 5, hy - 2], fill=pal["accent_hi"])
             d.point((hx + 6, hy - 1), fill=pal["accent_hi"])
 
-    arm(p["fa"], p["ff"], pal.get("sleeve", pal["jacket"]), pal["glove"], pal["accent_hi"])
+    if "cyber" in pal:  # the front arm is the cyber arm
+        arm(p["fa"], p["ff"], pal["cyber"], pal["cyber_hi"], pal["accent_hi"], cyber=True)
+    else:
+        arm(p["fa"], p["ff"], pal.get("sleeve", pal["jacket"]), pal["glove"], pal["accent_hi"])
     if bulk:  # pauldron over the front shoulder
         sx, sy = ipt(shoulder)
         r = 2 + bulk
