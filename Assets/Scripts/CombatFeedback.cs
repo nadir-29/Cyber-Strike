@@ -1,7 +1,8 @@
 using UnityEngine;
 
-// Hit juice: a neon spark burst, a tiny screen shake and a short hit-pause whenever an attack lands.
-// Listens to FighterCombat.HitLanded; no gameplay rules here.
+// Hit juice: a neon spark burst, a tiny screen shake and a short hit-pause whenever an attack lands,
+// and a lighter cyan deflect burst when a guard stops one.
+// Listens to FighterCombat.HitLanded and Blocked; no gameplay rules here.
 public class CombatFeedback : MonoBehaviour
 {
     [SerializeField] FighterCombat[] fighters;
@@ -26,19 +27,25 @@ public class CombatFeedback : MonoBehaviour
     [SerializeField] int punchSparks = 9;
     [SerializeField] int kickSparks = 13;
 
+    [Header("Blocked Hits")]
+    [SerializeField] Color deflectSpark = new Color(0.25f, 0.95f, 1f);
+    [SerializeField] int deflectSparks = 10;
+    [SerializeField] float blockShake = 0.03f;
+    [SerializeField] float blockPause = 0.03f;
+
     float pauseEnd;
     bool paused;
 
     void OnEnable()
     {
         foreach (FighterCombat f in fighters)
-            if (f != null) f.HitLanded += OnHitLanded;
+            if (f != null) { f.HitLanded += OnHitLanded; f.Blocked += OnBlocked; }
     }
 
     void OnDisable()
     {
         foreach (FighterCombat f in fighters)
-            if (f != null) f.HitLanded -= OnHitLanded;
+            if (f != null) { f.HitLanded -= OnHitLanded; f.Blocked -= OnBlocked; }
         if (paused) EndPause();
     }
 
@@ -55,6 +62,26 @@ public class CombatFeedback : MonoBehaviour
             else cameraShake.Shake(kick ? kickShake : punchShake, shakeTime);
         }
         Pause(knockout ? knockoutHitPause : hitPause);
+    }
+
+    void OnBlocked(FighterCombat.HitInfo hit)
+    {
+        if (hit.target.IsDead) return; // a chip KO gets the full knockout feedback via HitLanded
+
+        PixelParticles particles = PixelParticles.Instance;
+        if (particles != null)
+        {
+            // Sparks glance off the guard back toward the attacker.
+            for (int i = 0; i < deflectSparks; i++)
+            {
+                float angle = Random.Range(-60f, 60f) * Mathf.Deg2Rad;
+                Vector2 dir = new Vector2(-Mathf.Cos(angle) * hit.direction, Mathf.Sin(angle));
+                Color c = Color.Lerp(deflectSpark, coreColor, Random.Range(0f, 0.6f));
+                particles.Emit(hit.point, dir * Random.Range(3f, 7f), c, Random.Range(0.1f, 0.22f), 1f, 8f, 5f, true);
+            }
+        }
+        if (cameraShake != null) cameraShake.Shake(blockShake, shakeTime);
+        Pause(blockPause);
     }
 
     void Sparks(FighterCombat.HitInfo hit, bool kick)

@@ -13,6 +13,7 @@ public class PlayerInputController : MonoBehaviour
     InputAction punchAction;
     InputAction kickAction;
     InputAction abilityAction;
+    InputAction blockAction;
 
     void Awake()
     {
@@ -27,8 +28,9 @@ public class PlayerInputController : MonoBehaviour
 
         jumpAction = new InputAction("Jump", InputActionType.Button, "<Keyboard>/space");
         punchAction = new InputAction("Punch", InputActionType.Button, "<Mouse>/leftButton");
-        kickAction = new InputAction("Kick", InputActionType.Button, "<Mouse>/rightButton");
+        kickAction = new InputAction("Kick", InputActionType.Button, "<Keyboard>/f");
         abilityAction = new InputAction("Ability", InputActionType.Button, "<Keyboard>/e");
+        blockAction = new InputAction("Block", InputActionType.Button, "<Mouse>/rightButton");
     }
 
     void OnEnable()
@@ -38,6 +40,7 @@ public class PlayerInputController : MonoBehaviour
         punchAction.Enable();
         kickAction.Enable();
         abilityAction.Enable();
+        blockAction.Enable();
     }
 
     void OnDisable()
@@ -47,7 +50,9 @@ public class PlayerInputController : MonoBehaviour
         punchAction.Disable();
         kickAction.Disable();
         abilityAction.Disable();
+        blockAction.Disable();
         fighter.SetMoveInput(0f);
+        combat.SetBlock(false);
     }
 
     void OnDestroy()
@@ -57,11 +62,13 @@ public class PlayerInputController : MonoBehaviour
         punchAction.Dispose();
         kickAction.Dispose();
         abilityAction.Dispose();
+        blockAction.Dispose();
     }
 
     void Update()
     {
         fighter.SetMoveInput(moveAction.ReadValue<float>());
+        combat.SetBlock(blockAction.IsPressed());
 
         if (jumpAction.WasPressedThisFrame())
             fighter.Jump();

@@ -16,6 +16,8 @@ Outputs
 Backdrop is 16:9 and meant for 30 pixels per unit (12 x 21.3 units).
 Fighter sheet rows, top to bottom: idle(4) walk(6) jump(2) punch(3) kick(3) hurt(2).
 KO strips (fighter_<who>_ko.png, 192x64): reel(flash), flung, limp (visor off).
+Block strips (fighter_<who>_block.png, 192x64): raise guard, hold guard, impact recoil.
+Assets/Art/VFX/block_shield.png: cyan hex-energy shield shown in front of a fighter when a hit is blocked.
 """
 import math
 import random
@@ -517,6 +519,17 @@ def ko_frames():
     ]
 
 
+def block_frames():
+    """Block: forearms raised in front of the face on a braced, low stance; the last frame is the
+    recoil when a hit is absorbed."""
+    stance = dict(ft=38, fs=-24, bt=-30, bs=12, hip_y=40)
+    return [
+        pose(lean=0, fa=70, ff=130, ba=55, bf=120, **stance),
+        pose(lean=-4, fa=105, ff=172, ba=88, bf=168, **stance),
+        pose(lean=-12, head=-1, fa=112, ff=-178, ba=96, bf=176, ft=30, fs=-26, bt=-36, bs=8, hip_y=40),
+    ]
+
+
 def step(p, angle, length):
     a = math.radians(angle)
     return (p[0] + math.sin(a) * length, p[1] + math.cos(a) * length)
@@ -715,12 +728,39 @@ def make_sheet(pal):
     return sheet
 
 
-def make_ko_strip(pal):
-    frames = ko_frames()
+def make_ko_strip(pal, frames=None):
+    frames = frames or ko_frames()
     strip = Image.new("RGBA", (len(frames) * FRAME, FRAME), (0, 0, 0, 0))
     for col, p in enumerate(frames):
         strip.alpha_composite(draw_fighter(pal, p), (col * FRAME, 0))
     return strip
+
+
+def make_block_strip(pal):
+    return make_ko_strip(pal, block_frames())
+
+
+def make_block_shield():
+    """14x40 curved shield of hex cells: white-hot core edge fading to cyan, transparent gaps."""
+    w, h = 14, 40
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    for y in range(h):
+        v = (y - (h - 1) / 2) / ((h - 1) / 2)       # -1 .. 1 down the shield
+        bulge = (1 - v * v) ** 0.5                 # arc bulging toward the attacker (+x)
+        edge = 3 + bulge * 8
+        for x in range(w):
+            d = edge - x                           # distance inside the front edge
+            if d < 0 or d > 5:
+                continue
+            fade = 1 - abs(v) ** 3
+            if d < 1:
+                c, a = (235, 255, 255), 255
+            elif (x + (y // 3) % 2) % 3 == 0 or y % 3 == 0:  # hex cell lines
+                c, a = (60, 240, 255), int(220 * fade)
+            else:
+                c, a = (40, 200, 255), int(70 * fade * (1 - d / 6))
+            img.putpixel((x, y), c + (a,))
+    return img
 
 
 def make_portrait(pal):
@@ -764,6 +804,7 @@ def make_opponents(out):
     for oid, pal in OPPONENT_PALETTES.items():
         make_sheet(pal).save(out / f"fighter_{oid}.png")
         make_ko_strip(pal).save(out / f"fighter_{oid}_ko.png")
+        make_block_strip(pal).save(out / f"fighter_{oid}_block.png")
         make_portrait(pal).save(out / f"portrait_{oid}.png")
 
 
@@ -872,7 +913,11 @@ def main():
     player_ko.save(ART / "Fighters" / "fighter_player_ko.png")
     ai_ko.save(ART / "Fighters" / "fighter_ai_ko.png")
     make_hud(ART / "UI")
+    make_block_strip(PLAYER_PALETTE).save(ART / "Fighters" / "fighter_player_block.png")
+    make_block_strip(AI_PALETTE).save(ART / "Fighters" / "fighter_ai_block.png")
     make_opponents(ART / "Fighters" / "Opponents")
+    (ART / "VFX").mkdir(parents=True, exist_ok=True)
+    make_block_shield().save(ART / "VFX" / "block_shield.png")
     make_select_ui(ART / "UI")
 
     if len(sys.argv) > 1:  # optional upscaled previews for review
@@ -900,6 +945,12 @@ def main():
             roster.alpha_composite(make_ko_strip(pal), (FRAME * 3 * i, FRAME))
             roster.alpha_composite(make_portrait(pal), (FRAME * 3 * i + 16, FRAME * 2))
         roster.resize((roster.width * 3, roster.height * 3), Image.NEAREST).save(out / "roster_preview.png")
+        pals = [PLAYER_PALETTE, AI_PALETTE] + list(OPPONENT_PALETTES.values())
+        blocks = Image.new("RGBA", (FRAME * 3 + 40, FRAME * len(pals)), (60, 60, 70, 255))
+        for i, pal in enumerate(pals):
+            blocks.alpha_composite(make_block_strip(pal), (0, FRAME * i))
+            blocks.alpha_composite(make_block_shield(), (FRAME * 3 + 10, FRAME * i + 12))
+        blocks.resize((blocks.width * 4, blocks.height * 4), Image.NEAREST).save(out / "block_preview.png")
 
 
 if __name__ == "__main__":

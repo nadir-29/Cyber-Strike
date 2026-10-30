@@ -50,16 +50,33 @@ public class AIController : MonoBehaviour
     [Tooltip("Jumps over the target when it stands this close between it and a pickup.")]
     [SerializeField] float jumpOverDistance = 1.6f;
 
+    [Header("Blocking")]
+    [Tooltip("Chance to raise the guard when the target starts an attack in range or after taking a hit (a quarter of it, per decision, to guard pre-emptively when close).")]
+    [SerializeField, Range(0f, 1f)] float blockChance = 0.35f;
+    [Tooltip("Seconds after seeing the attack before it raises the guard (min, max).")]
+    [SerializeField] Vector2 blockReactionTime = new Vector2(0.12f, 0.25f);
+    [Tooltip("Seconds it holds the guard before dropping it (min, max), so it never blocks forever.")]
+    [SerializeField] Vector2 blockHoldTime = new Vector2(0.35f, 0.7f);
+    [Tooltip("Seconds after dropping the guard before it can block again.")]
+    [SerializeField, Min(0f)] float blockCooldown = 0.9f;
+    [Tooltip("Reacts to attacks started within this distance.")]
+    [SerializeField] float blockRange = 2f;
+
     Fighter fighter;
     FighterCombat combat;
     Health health;
     Stamina stamina;
     FighterAbilities abilities;
     Health targetHealth;
+    FighterCombat targetCombat;
     bool recovering;
     float thinkTimer;
     float attackTimer;
     float backOffTimer;
+    float blockDelayTimer = -1f;
+    float blockHoldTimer;
+    float blockCooldownTimer;
+    bool guarding;
 
     void Awake()
     {
@@ -68,7 +85,11 @@ public class AIController : MonoBehaviour
         health = GetComponent<Health>();
         stamina = GetComponent<Stamina>();
         abilities = GetComponent<FighterAbilities>();
-        if (target != null) targetHealth = target.GetComponent<Health>();
+        if (target != null)
+        {
+            targetHealth = target.GetComponent<Health>();
+            targetCombat = target.GetComponent<FighterCombat>();
+        }
         if (profile != null) SetProfile(profile);
 
         if (target == null)
@@ -92,18 +113,25 @@ public class AIController : MonoBehaviour
         fightOverPickupChance = profile.fightOverPickupChance;
         useAbilityChance = profile.useAbilityChance;
         abilitySmarts = profile.abilitySmarts;
+        blockChance = profile.blockChance;
+        blockReactionTime = profile.blockReactionTime;
+        blockHoldTime = profile.blockHoldTime;
+        blockCooldown = profile.blockCooldown;
     }
 
     void OnEnable()
     {
         combat.HitTaken += OnHitTaken;
+        if (targetCombat != null) targetCombat.AttackStarted += OnTargetAttack;
         thinkTimer = Roll(reactionTime);
     }
 
     void OnDisable()
     {
         combat.HitTaken -= OnHitTaken;
+        if (targetCombat != null) targetCombat.AttackStarted -= OnTargetAttack;
         fighter.SetMoveInput(0f);
+        DropGuard();
     }
 
     void Update()
@@ -111,6 +139,7 @@ public class AIController : MonoBehaviour
         if (target == null || health.IsDead || (targetHealth != null && targetHealth.IsDead))
         {
             fighter.SetMoveInput(0f);
+            DropGuard();
             return;
         }
 
@@ -118,6 +147,8 @@ public class AIController : MonoBehaviour
         attackTimer -= dt;
         backOffTimer -= dt;
         thinkTimer -= dt;
+        blockCooldownTimer -= dt;
+        if (UpdateGuard(dt)) return; // guard up (or about to go up): nothing else to decide
         if (thinkTimer > 0f) return;
 
         thinkTimer = Roll(reactionTime);
@@ -163,6 +194,9 @@ public class AIController : MonoBehaviour
 
         fighter.SetMoveInput(0f);
         fighter.Face(toTarget);
+
+        // Waiting on its own attack cooldown up close: sometimes keep the guard up instead.
+        if (attackTimer > 0f && Random.value < blockChance * 0.25f && TryStartBlock(0f)) return;
 
         if (attackTimer > 0f || !combat.CanAct) return;
         attackTimer = Roll(attackCooldown);
@@ -224,8 +258,59 @@ public class AIController : MonoBehaviour
         if (useful) abilities.UseAbility();
     }
 
+    // The target started an attack: maybe raise the guard after a reaction delay.
+    void OnTargetAttack(AttackType type)
+    {
+        if (target == null || health.IsDead) return;
+        float dx = transform.position.x - target.transform.position.x;
+        bool facingUs = (dx >= 0f ? 1 : -1) == target.FacingDirection;
+        if (!facingUs || Mathf.Abs(dx) > blockRange || Random.value > blockChance) return;
+        TryStartBlock(Roll(blockReactionTime));
+    }
+
+    bool TryStartBlock(float delay)
+    {
+        if (guarding || blockDelayTimer >= 0f || blockCooldownTimer > 0f) return false;
+        blockDelayTimer = delay;
+        return true;
+    }
+
+    // Counts down to raising the guard, then holds it for a limited time. Returns true while blocking.
+    bool UpdateGuard(float dt)
+    {
+        if (blockDelayTimer >= 0f)
+        {
+            blockDelayTimer -= dt;
+            if (blockDelayTimer >= 0f) return false;
+            fighter.SetMoveInput(0f);
+            fighter.Face(target.transform.position.x >= transform.position.x ? 1 : -1);
+            combat.SetBlock(true);
+            guarding = true;
+            blockHoldTimer = Roll(blockHoldTime);
+        }
+        if (!guarding) return false;
+
+        // The hold only counts down while the guard is up or could be (not while stunned or mid-attack),
+        // so a guard raised just before a hit still covers the follow-ups. It always runs out eventually.
+        if (combat.IsGuarding || combat.CanAct) blockHoldTimer -= dt;
+        if (blockHoldTimer > 0f) return true;
+        DropGuard();
+        blockCooldownTimer = blockCooldown;
+        return false;
+    }
+
+    void DropGuard()
+    {
+        blockDelayTimer = -1f;
+        if (!guarding) return;
+        guarding = false;
+        combat.SetBlock(false);
+    }
+
     void OnHitTaken()
     {
+        // Turtle up against the follow-ups; the guard rises once the hit stun wears off.
+        if (Random.value < blockChance && TryStartBlock(Roll(blockReactionTime))) return;
         if (Random.value < backOffWhenHitChance)
             backOffTimer = Roll(backOffTime);
     }

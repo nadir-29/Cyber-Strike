@@ -35,6 +35,16 @@ public class AIProfile : ScriptableObject
     [Tooltip("1 = only uses an ability when it helps; 0 = fires it off as soon as it considers it.")]
     [Range(0f, 1f)] public float abilitySmarts = 0.7f;
 
+    [Header("Blocking")]
+    [Tooltip("Chance to raise the guard when the target starts an attack in range or after taking a hit (a quarter of it, per decision, to guard pre-emptively when close).")]
+    [Range(0f, 1f)] public float blockChance = 0.35f;
+    [Tooltip("Seconds after seeing the attack before it raises the guard (min, max). The guard itself takes 0.1 s to come up.")]
+    public Vector2 blockReactionTime = new Vector2(0.12f, 0.25f);
+    [Tooltip("Seconds it holds the guard before dropping it (min, max).")]
+    public Vector2 blockHoldTime = new Vector2(0.35f, 0.7f);
+    [Tooltip("Seconds after dropping the guard before it can block again.")]
+    [Min(0f)] public float blockCooldown = 0.9f;
+
     [Header("Stat Bonus")]
     [Tooltip("Added to the fighter's max HP.")]
     [Min(0)] public int bonusHealth;

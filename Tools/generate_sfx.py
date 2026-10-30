@@ -6,7 +6,7 @@ Pure Python (no numpy): simple oscillators, pitch sweeps, envelopes, noise and b
 written as 22.05 kHz 16-bit mono WAV files.
 
 Outputs (Assets/Audio/)
-  punch.wav, kick.wav, hit.wav, pickup.wav,
+  punch.wav, kick.wav, hit.wav, deflect.wav, pickup.wav,
   ability_double_damage.wav, ability_healing.wav, ability_steal.wav, ability_ice_strike.wav,
   win.wav, lose.wav
 """
@@ -155,6 +155,17 @@ def hit():
     return bitcrush(mix(thump, crack, body), steps=24, hold=2)
 
 
+def deflect():
+    """Blocked hit: bright metallic ting on an energy shield, no low thump. Two inharmonic
+    partials ring over a tiny click, with a short upward zap and a shimmering echo."""
+    click = noise(0.02, 0.5, curve=3.0, hold=1)
+    ring = mix(tone(0.22, 1760, triangle, 0.35, curve=2.2),
+               tone(0.22, 2490, triangle, 0.22, curve=2.6),
+               tone(0.12, 3950, sine, 0.12, curve=3.0))
+    zap = tone(0.06, sweep(600, 1500), lambda p: square(p, 0.25), 0.18, curve=1.0)
+    return echo(mix(click, ring, zap), delay=0.045, feedback=0.3, taps=2)
+
+
 def pickup():
     """Bright rising arpeggio."""
     notes = [(note(n), 0.05) for n in (3, 7, 10, 15)] + [(note(22), 0.12)]
@@ -218,7 +229,7 @@ def lose():
 
 def main():
     sounds = {
-        "punch": punch, "kick": kick, "hit": hit, "pickup": pickup,
+        "punch": punch, "kick": kick, "hit": hit, "deflect": deflect, "pickup": pickup,
         "ability_double_damage": double_damage, "ability_healing": healing,
         "ability_steal": steal, "ability_ice_strike": ice_strike,
         "win": win, "lose": lose,

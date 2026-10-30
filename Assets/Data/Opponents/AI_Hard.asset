@@ -23,5 +23,9 @@ MonoBehaviour:
   fightOverPickupChance: 0.3
   useAbilityChance: 0.6
   abilitySmarts: 1
+  blockChance: 0.7
+  blockReactionTime: {x: 0.02, y: 0.07}
+  blockHoldTime: {x: 0.4, y: 0.8}
+  blockCooldown: 0.5
   bonusHealth: 15
   damageMultiplier: 1.1

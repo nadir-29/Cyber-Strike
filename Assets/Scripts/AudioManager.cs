@@ -19,6 +19,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField] AudioClip punch;
     [SerializeField] AudioClip kick;
     [SerializeField] AudioClip hit;
+    [Tooltip("A hit stopped by a guard.")]
+    [SerializeField] AudioClip deflect;
     [SerializeField] AudioClip pickup;
     [SerializeField] AbilitySound[] abilitySounds;
     [SerializeField] AudioClip win;
@@ -79,13 +81,13 @@ public class AudioManager : MonoBehaviour
 
         if (subscribe)
         {
-            if (combat != null) { combat.AttackStarted += OnAttackStarted; combat.HitLanded += OnHitLanded; }
+            if (combat != null) { combat.AttackStarted += OnAttackStarted; combat.HitLanded += OnHitLanded; combat.Blocked += OnBlocked; }
             if (abilities != null) { abilities.PickedUp += OnPickedUp; abilities.Used += OnAbilityUsed; }
             if (movement != null) movement.Slowed += OnSlowed;
         }
         else
         {
-            if (combat != null) { combat.AttackStarted -= OnAttackStarted; combat.HitLanded -= OnHitLanded; }
+            if (combat != null) { combat.AttackStarted -= OnAttackStarted; combat.HitLanded -= OnHitLanded; combat.Blocked -= OnBlocked; }
             if (abilities != null) { abilities.PickedUp -= OnPickedUp; abilities.Used -= OnAbilityUsed; }
             if (movement != null) movement.Slowed -= OnSlowed;
         }
@@ -95,6 +97,7 @@ public class AudioManager : MonoBehaviour
 
     void OnAttackStarted(AttackType type) => Play(type == AttackType.Punch ? punch : kick, attackVolume, true);
     void OnHitLanded(FighterCombat.HitInfo info) => Play(hit, hitVolume, true);
+    void OnBlocked(FighterCombat.HitInfo info) => Play(deflect, hitVolume, true);
     void OnPickedUp(AbilityType type) => Play(pickup, pickupVolume, false);
     void OnAbilityUsed(AbilityType type) => Play(AbilityClip(type), abilityVolume, false);
     void OnSlowed() => Play(AbilityClip(AbilityType.IceStrike), freezeVolume, true);

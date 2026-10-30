@@ -20,6 +20,7 @@
 5. Art / animation / SFX
 6. Menus + win/loss
 7. CPU fighter select + difficulty profiles
+8. Blocking
 
 ## Spec
 
@@ -30,7 +31,8 @@
 | Move        | A / D         |
 | Jump        | Space         |
 | Punch       | Left mouse    |
-| Kick        | Right mouse   |
+| Kick        | F             |
+| Block       | Hold right mouse |
 | Use ability | E             |
 
 ### Combat
@@ -39,6 +41,16 @@
 - An attack must never deal damage more than once per swing.
 - Each fighter has a health bar.
 - Knockout: the final blow launches the loser backward, with brief slow motion, a flicker and a topple.
+
+### Blocking
+
+- Hold the block input to guard. While guarding (including the guard startup) the fighter can't move, jump or attack. The guard only goes up on the ground, when not attacking or stunned.
+- The guard takes 0.1 s to come up (`FighterCombat.blockStartup`); hits during that startup land normally, so it can't be spammed instantly.
+- Only hits from the front are blocked; hits from behind land normally.
+- A blocked hit deals 20% chip damage (rounded, minimum 1), causes no hit stun and no hurt reaction. Chip damage can KO.
+- Double Damage: a blocked hit still only deals chip damage (20% of the doubled hit).
+- Ice Strike: a blocked punch does not slow and does not use up the armed Ice Strike; the next punch that lands does.
+- Feedback: block pose (raise / hold) and an impact recoil frame, a cyan energy shield flash in front of the defender (`BlockVisuals`), cyan deflect sparks with a light hit-pause (`CombatFeedback`) and a "deflect" SFX instead of the hit sound.
 
 ### Stamina
 
@@ -59,15 +71,16 @@
 ### AI
 
 - Approaches the player, attacks when in range, and goes for pickups.
-- Difficulty comes from an `AIProfile` ScriptableObject per opponent: reaction delay, attack frequency, retreat chances, how fast it notices pickups, how smartly it uses abilities, plus an HP / damage bonus. `AIController` only reads the profile; the stat bonus is applied to `Health` / `FighterCombat` by `OpponentLoader`.
+- Blocks: may raise its guard (after its block reaction time) when the player starts an attack in front of it, after taking a hit, or pre-emptively while waiting to attack. It drops the guard after its hold time and then waits out a cooldown, so it never blocks forever. Easy rarely blocks, Medium sometimes, Hard often and fast.
+- Difficulty comes from an `AIProfile` ScriptableObject per opponent: reaction delay, attack frequency, retreat chances, how fast it notices pickups, how smartly it uses abilities, blocking (chance, reaction time, hold time, cooldown), plus an HP / damage bonus. `AIController` only reads the profile; the stat bonus is applied to `Health` / `FighterCombat` by `OpponentLoader`.
 
 ### CPU opponents (fighter select = difficulty)
 
 | Difficulty | Name        | Look                                              | Profile highlights                                   |
 |------------|-------------|---------------------------------------------------|------------------------------------------------------|
-| Easy (1★)  | JINX VALE   | Street punk rookie: pink/green mohawk, tank top, tattoos, lime shades | Slow reactions, hesitant, retreats often, careless abilities |
-| Medium (2★)| SGT. HALDEN | Corporate security enforcer: slate armor, sealed helmet, amber visor | The original AI tuning                              |
-| Hard (3★)  | OBSIDIAN    | Elite cyborg assassin: bulky gunmetal armor, back unit, skull cap, red eyes | Near-instant reactions, relentless, smart abilities, +15 HP, 1.1x damage |
+| Easy (1★)  | JINX VALE   | Street punk rookie: pink/green mohawk, tank top, tattoos, lime shades | Slow reactions, hesitant, retreats often, careless abilities, rarely blocks (10%, slow) |
+| Medium (2★)| SGT. HALDEN | Corporate security enforcer: slate armor, sealed helmet, amber visor | The original AI tuning, blocks sometimes (55%, 0.08–0.18 s) |
+| Hard (3★)  | OBSIDIAN    | Elite cyborg assassin: bulky gunmetal armor, back unit, skull cap, red eyes | Near-instant reactions, relentless, smart abilities, blocks often and fast (70%, 0.02–0.07 s), +15 HP, 1.1x damage |
 
 - Data: `Assets/Data/Opponents/` holds `OpponentRoster`, one `OpponentData` (name, bio, stars, portrait, accent, sprites, AI profile) and one `AIProfile` per opponent.
 - Art: `Tools/generate_art.py` draws each opponent in the shared fighter style (`OPPONENT_PALETTES`) into `Assets/Art/Fighters/Opponents/` (sheet, KO strip, portrait). Sheets use the same slicing as `fighter_ai.png`.
@@ -79,12 +92,13 @@
 ### Screens
 
 - **Flow:** Title → Fighter Select → Fight. Restart keeps the same opponent; Menu goes back to Title.
-- **Title:** game title, controls, Start button (goes to Fighter Select).
+- **Title:** game title, controls panel (matches the Controls table), Start button (goes to Fighter Select).
 - **Fighter Select** (`FighterSelect` scene): 3 neon cards with portrait, name, difficulty stars (1–3) and bio. Hover or Left/Right (A/D) highlights; click or Enter picks; Back button or Esc returns to Title.
 - **Win / Loss:** Restart and Menu buttons.
 
 ### Art and audio
 
-- Animations: idle, walk, jump, punch, kick, hurt.
-- SFX: punch, kick, pickup, ability, win/loss.
+- Animations: idle, walk, jump, punch, kick, hurt, block (+ block impact), KO.
+- SFX: punch, kick, hit, deflect (blocked hit), pickup, ability, win/loss.
+- `README.md` also lists the controls; keep it in sync with the Controls table.
 - No music.

@@ -4,8 +4,11 @@ using UnityEngine;
 
 public enum AttackType { Punch, Kick }
 
-// Attacks, hitboxes and hit reactions shared by the player and the AI.
-// Input controllers only call Punch() and Kick(). Damage is multiplied by FighterAbilities (Double Damage).
+// Attacks, hitboxes, blocking and hit reactions shared by the player and the AI.
+// Input controllers only call Punch(), Kick() and SetBlock(). Damage is multiplied by FighterAbilities (Double Damage).
+// Blocking: while the block input is held the fighter is locked in place (no move, jump or attack). After a short
+// startup the guard stops hits from the front: they deal chip damage only, cause no stun and never trigger Ice Strike.
+// Hits from behind land normally.
 [RequireComponent(typeof(Fighter), typeof(Health))]
 public class FighterCombat : MonoBehaviour
 {
@@ -20,6 +23,8 @@ public class FighterCombat : MonoBehaviour
         public int direction;
         // True while the attacker's Double Damage is active.
         public bool empowered;
+        // True if the target's guard stopped the hit (damage is then only chip damage).
+        public bool blocked;
     }
 
     [Serializable]
@@ -58,6 +63,12 @@ public class FighterCombat : MonoBehaviour
     [Tooltip("Velocity the loser is launched with on the knockout blow (x is away from the hit).")]
     [SerializeField] Vector2 knockoutLaunch = new Vector2(6f, 7f);
 
+    [Header("Block")]
+    [Tooltip("Seconds raising the guard before it stops hits; the fighter is already locked in place meanwhile.")]
+    [SerializeField] float blockStartup = 0.1f;
+    [Tooltip("Fraction of a blocked hit's damage that still goes through (always at least 1).")]
+    [SerializeField, Range(0f, 1f)] float chipDamage = 0.2f;
+
     Fighter fighter;
     Health health;
     Stamina stamina;
@@ -69,16 +80,25 @@ public class FighterCombat : MonoBehaviour
     ContactFilter2D hurtboxFilter;
     readonly List<Collider2D> overlaps = new List<Collider2D>();
     readonly HashSet<Health> hitThisSwing = new HashSet<Health>();
+    bool blockHeld;
+    float guardTime;
+    bool absorbing;
 
     // Multiplies all damage this fighter deals, e.g. an opponent's difficulty bonus.
     public float DamageScale { get; set; } = 1f;
     public bool IsAttacking => current != null;
-    public bool CanAct => current == null && stunTime <= 0f && !health.IsDead;
+    // Guard raised or being raised: the fighter can't move, jump or attack.
+    public bool IsGuarding { get; private set; }
+    // Guard fully up: hits from the front are blocked.
+    public bool IsBlocking => IsGuarding && guardTime >= blockStartup;
+    public bool CanAct => current == null && stunTime <= 0f && !health.IsDead && !IsGuarding;
 
     public event Action<AttackType> AttackStarted;
     public event Action HitTaken;
     // Raised once per target each time one of this fighter's attacks connects.
     public event Action<HitInfo> HitLanded;
+    // Raised on the defender each time its guard stops a hit.
+    public event Action<HitInfo> Blocked;
 
     void Awake()
     {
@@ -108,6 +128,9 @@ public class FighterCombat : MonoBehaviour
     public void Punch() => StartAttack(punch, AttackType.Punch);
     public void Kick() => StartAttack(kick, AttackType.Kick);
 
+    // Hold to block. The guard goes up as soon as the fighter is free (not attacking, stunned or airborne).
+    public void SetBlock(bool held) => blockHeld = held;
+
     void StartAttack(Attack attack, AttackType type)
     {
         if (!CanAct) return;
@@ -128,6 +151,7 @@ public class FighterCombat : MonoBehaviour
             stunTime -= Time.fixedDeltaTime;
             if (stunTime <= 0f) UpdateMovementLock();
         }
+        UpdateGuard();
 
         if (current == null) return;
 
@@ -154,17 +178,26 @@ public class FighterCombat : MonoBehaviour
             if (target.IsDead) continue;
 
             int multiplier = abilities != null ? abilities.DamageMultiplier : 1;
-            int damage = Mathf.Max(1, Mathf.RoundToInt(current.damage * multiplier * DamageScale));
-            AttackType type = currentType;
-            target.TakeDamage(damage, fighter.FacingDirection);
-            if (type == AttackType.Punch && abilities != null)
-                abilities.OnPunchLanded(target);
-
-            HitLanded?.Invoke(new HitInfo
+            HitInfo hit = new HitInfo
             {
-                attacker = this, target = target, point = col.ClosestPoint(center), type = type,
-                damage = damage, direction = fighter.FacingDirection, empowered = multiplier > 1,
-            });
+                attacker = this, target = target, point = col.ClosestPoint(center), type = currentType,
+                damage = Mathf.Max(1, Mathf.RoundToInt(current.damage * multiplier * DamageScale)),
+                direction = fighter.FacingDirection, empowered = multiplier > 1,
+            };
+
+            // A guard facing the attacker turns the hit into chip damage: no Ice Strike, no stun.
+            FighterCombat defender = target.GetComponent<FighterCombat>();
+            if (defender != null && defender.Blocks(transform.position))
+            {
+                hit = defender.Absorb(hit);
+                if (target.IsDead) HitLanded?.Invoke(hit); // chip KO still gets the knockout feedback
+                continue;
+            }
+
+            target.TakeDamage(hit.damage, hit.direction);
+            if (hit.type == AttackType.Punch && abilities != null)
+                abilities.OnPunchLanded(target);
+            HitLanded?.Invoke(hit);
         }
     }
 
@@ -174,8 +207,50 @@ public class FighterCombat : MonoBehaviour
         return (Vector2)transform.position + new Vector2(attack.offset.x * facing, attack.offset.y);
     }
 
+    // True if the guard is fully up and the attacker stands in front of this fighter.
+    bool Blocks(Vector2 attackerPosition)
+    {
+        if (!IsBlocking) return false;
+        float dx = attackerPosition.x - transform.position.x;
+        return dx == 0f || (dx > 0f ? 1 : -1) == fighter.FacingDirection;
+    }
+
+    HitInfo Absorb(HitInfo hit)
+    {
+        hit.blocked = true;
+        hit.damage = chipDamage > 0f ? Mathf.Max(1, Mathf.RoundToInt(hit.damage * chipDamage)) : 0;
+        absorbing = true;
+        health.TakeDamage(hit.damage, hit.direction);
+        absorbing = false;
+        Blocked?.Invoke(hit);
+        return hit;
+    }
+
+    void UpdateGuard()
+    {
+        bool canGuard = blockHeld && current == null && stunTime <= 0f && !health.IsDead && fighter.IsGrounded;
+        if (canGuard)
+        {
+            if (IsGuarding)
+            {
+                guardTime += Time.fixedDeltaTime;
+                return;
+            }
+            IsGuarding = true;
+            guardTime = 0f;
+            UpdateMovementLock();
+        }
+        else if (IsGuarding)
+        {
+            IsGuarding = false;
+            UpdateMovementLock();
+        }
+    }
+
     void OnDamaged()
     {
+        if (absorbing) return; // blocked chip damage: the guard holds, no stun
+        IsGuarding = false;
         current = null;
         stunTime = hitStun;
         UpdateMovementLock();
@@ -185,6 +260,7 @@ public class FighterCombat : MonoBehaviour
     void OnDied()
     {
         current = null;
+        IsGuarding = false;
         UpdateMovementLock();
         int direction = health.LastHitDirection != 0 ? health.LastHitDirection : -fighter.FacingDirection;
         fighter.Launch(new Vector2(knockoutLaunch.x * direction, knockoutLaunch.y));
@@ -193,7 +269,7 @@ public class FighterCombat : MonoBehaviour
 
     void UpdateMovementLock()
     {
-        fighter.MovementLocked = current != null || stunTime > 0f || health.IsDead;
+        fighter.MovementLocked = current != null || stunTime > 0f || health.IsDead || IsGuarding;
     }
 
     void OnDrawGizmosSelected()

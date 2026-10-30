@@ -1631,7 +1631,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MainMenu
   startButton: {fileID: 136161281}
   quitButton: {fileID: 1215164390}
-  arenaScene: Arena
+  selectScene: FighterSelect
 --- !u!4 &1452207800
 Transform:
   m_ObjectHideFlags: 0
@@ -1682,8 +1682,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -380, y: -250}
-  m_SizeDelta: {x: 515, y: 395}
+  m_AnchoredPosition: {x: -380, y: -225}
+  m_SizeDelta: {x: 515, y: 445}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1668212383
 MonoBehaviour:
@@ -1697,7 +1697,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e689161e2a3a6904f82fef297c6642cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelText
-  text: "CONTROLS\n\nA / D   MOVE   \nSPACE   JUMP   \nLMB     PUNCH  \nRMB     KICK   \nE       ABILITY"
+  text: "CONTROLS\n\nA / D   MOVE   \nSPACE   JUMP   \nLMB     PUNCH  \nF       KICK   \nRMB     BLOCK  \nE       ABILITY"
   pixelScale: 5
   letterSpacing: 1
   lineSpacing: 3

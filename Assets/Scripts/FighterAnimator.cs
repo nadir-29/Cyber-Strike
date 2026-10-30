@@ -11,6 +11,8 @@ public class FighterAnimator : MonoBehaviour
     static readonly int KickHash = Animator.StringToHash("Kick");
     static readonly int HurtHash = Animator.StringToHash("Hurt");
     static readonly int DeadHash = Animator.StringToHash("Dead");
+    static readonly int BlockingHash = Animator.StringToHash("Blocking");
+    static readonly int BlockHitHash = Animator.StringToHash("BlockHit");
 
     Fighter fighter;
     FighterCombat combat;
@@ -32,6 +34,7 @@ public class FighterAnimator : MonoBehaviour
         if (combat == null) return;
         combat.AttackStarted += OnAttackStarted;
         combat.HitTaken += OnHitTaken;
+        combat.Blocked += OnBlocked;
     }
 
     void OnDisable()
@@ -39,6 +42,7 @@ public class FighterAnimator : MonoBehaviour
         if (combat == null) return;
         combat.AttackStarted -= OnAttackStarted;
         combat.HitTaken -= OnHitTaken;
+        combat.Blocked -= OnBlocked;
     }
 
     void Update()
@@ -48,12 +52,15 @@ public class FighterAnimator : MonoBehaviour
         animator.SetBool(GroundedHash, fighter.IsGrounded);
         animator.SetFloat(VelocityYHash, velocity.y);
         animator.SetBool(DeadHash, health != null && health.IsDead);
+        animator.SetBool(BlockingHash, combat != null && combat.IsGuarding);
     }
 
     void OnAttackStarted(AttackType type)
     {
         animator.SetTrigger(type == AttackType.Punch ? PunchHash : KickHash);
     }
+
+    void OnBlocked(FighterCombat.HitInfo hit) => animator.SetTrigger(BlockHitHash);
 
     void OnHitTaken()
     {
