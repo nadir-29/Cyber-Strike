@@ -6,10 +6,12 @@ using UnityEngine.UI;
 
 // CPU fighter select screen, which doubles as the difficulty choice. Hover or Left/Right highlights
 // a card; click or Enter picks it and starts the match; Back or Escape returns to the title.
+// The Hearts selector (HeartsSelector, Up/Down) sets how many lives each fighter gets.
 public class FighterSelect : MonoBehaviour
 {
     [SerializeField] OpponentCard[] cards;
     [SerializeField] Button backButton;
+    [SerializeField] HeartsSelector heartsSelector;
     [SerializeField] string arenaScene = "Arena";
     [SerializeField] string menuScene = "MainMenu";
     [Tooltip("Real seconds the picked card flashes before the match loads.")]
@@ -123,6 +125,7 @@ public class FighterSelect : MonoBehaviour
         picked = true;
         if (cardSounds[i] != null) cardSounds[i].PlayClick();
         OpponentRoster.Selected = cards[i].Opponent;
+        if (heartsSelector != null) heartsSelector.Locked = true;
         cards[i].PlayPicked();
         StartCoroutine(LoadArena());
     }

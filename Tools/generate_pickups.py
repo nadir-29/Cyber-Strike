@@ -6,6 +6,7 @@ Outputs
   Assets/Art/Pickups/pickup_<ability>.png  28x28, 16x16 item with a stepped neon glow (world pickups)
   Assets/Art/UI/icon_<ability>.png         16x16 item, no glow (held-ability HUD icon)
   Assets/Art/UI/hud_ability_slot_player.png / _ai.png  20x20 slot frame for the HUD icon
+  Assets/Art/UI/hud_heart_full.png / _empty.png        11x10 heart (lives) for the HUD and fighter select
 
 Abilities: double_damage (overclock chip), healing (medical nanobot),
 ability_steal (hacking chip), ice_strike (cryo crystal).
@@ -151,6 +152,35 @@ def slot_frame(accent):
     return img
 
 
+HEART = [  # 9x8 pixel heart; # = body, o = highlight
+    ".##...##.",
+    "#o##.####",
+    "#o#######",
+    "#########",
+    ".#######.",
+    "..#####..",
+    "...###...",
+    "....#....",
+]
+HEART_RED = (255, 40, 90)
+
+
+def heart(full):
+    """11x10 HUD heart (outlined): lit neon red when full, a dark hollow when lost."""
+    img = Image.new("RGBA", (len(HEART[0]), len(HEART)), (0, 0, 0, 0))
+    body = HEART_RED if full else (45, 30, 60)
+    shine = lerp(HEART_RED, WHITE, 0.7) if full else (70, 52, 90)
+    for y, row in enumerate(HEART):
+        for x, ch in enumerate(row):
+            if ch == "#":
+                img.putpixel((x, y), rgba(body if y < 5 else lerp(body, DARK, 0.2)))
+            elif ch == "o":
+                img.putpixel((x, y), rgba(shine))
+    padded = Image.new("RGBA", (img.width + 2, img.height + 2), (0, 0, 0, 0))
+    padded.alpha_composite(img, (1, 1))
+    return outline(padded)
+
+
 def main():
     pickups, ui = ART / "Pickups", ART / "UI"
     pickups.mkdir(parents=True, exist_ok=True)
@@ -165,6 +195,8 @@ def main():
         sheet.append(pickup)
     slot_frame(CYAN).save(ui / "hud_ability_slot_player.png")
     slot_frame((255, 120, 30)).save(ui / "hud_ability_slot_ai.png")
+    heart(True).save(ui / "hud_heart_full.png")
+    heart(False).save(ui / "hud_heart_empty.png")
 
     if len(sys.argv) > 1:  # optional upscaled preview for review
         out = Path(sys.argv[1])

@@ -94,6 +94,24 @@ public class Fighter : MonoBehaviour
         if (direction != 0) SetFacing(direction > 0 ? 1 : -1);
     }
 
+    // Puts a knocked-out fighter back at a position facing a direction, standing upright and at rest,
+    // with no slow, dash or queued jump. Called by Lives when it respawns, never in gameplay.
+    public void Respawn(Vector2 position, int facing)
+    {
+        rb.position = position;
+        transform.position = position;
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        rb.rotation = 0f;
+        transform.rotation = Quaternion.identity;
+        moveInput = 0f;
+        jumpRequested = false;
+        slowTimer = 0f;
+        dashTimer = 0f;
+        dashCooldownTimer = 0f;
+        SnapFacing(facing);
+    }
+
     // Dashes left (-1) or right (1) along the ground. Ignored while airborne, locked or on cooldown.
     public void Dash(int direction)
     {

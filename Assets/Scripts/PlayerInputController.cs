@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 // Reads keyboard/mouse input and forwards it to the Fighter and FighterCombat.
 // Left Shift + A or D asks the Fighter to dash that way (either key first); against the facing it's a backdash.
 // A / D never turn the fighter on the ground: Fighter only turns it mid-air.
+// E uses ability slot 1, R slot 2.
 [RequireComponent(typeof(Fighter), typeof(FighterCombat))]
 public class PlayerInputController : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class PlayerInputController : MonoBehaviour
     InputAction punchAction;
     InputAction kickAction;
     InputAction abilityAction;
+    InputAction ability2Action;
     InputAction blockAction;
     InputAction specialAction;
     InputAction dashAction;
@@ -36,6 +38,7 @@ public class PlayerInputController : MonoBehaviour
         punchAction = new InputAction("Punch", InputActionType.Button, "<Mouse>/leftButton");
         kickAction = new InputAction("Kick", InputActionType.Button, "<Keyboard>/f");
         abilityAction = new InputAction("Ability", InputActionType.Button, "<Keyboard>/e");
+        ability2Action = new InputAction("Ability2", InputActionType.Button, "<Keyboard>/r");
         blockAction = new InputAction("Block", InputActionType.Button, "<Mouse>/rightButton");
         specialAction = new InputAction("Special", InputActionType.Button, "<Keyboard>/q");
         dashAction = new InputAction("Dash", InputActionType.Button, "<Keyboard>/leftShift");
@@ -50,6 +53,7 @@ public class PlayerInputController : MonoBehaviour
         punchAction.Enable();
         kickAction.Enable();
         abilityAction.Enable();
+        ability2Action.Enable();
         blockAction.Enable();
         specialAction.Enable();
         dashAction.Enable();
@@ -64,6 +68,7 @@ public class PlayerInputController : MonoBehaviour
         punchAction.Disable();
         kickAction.Disable();
         abilityAction.Disable();
+        ability2Action.Disable();
         blockAction.Disable();
         specialAction.Disable();
         dashAction.Disable();
@@ -80,6 +85,7 @@ public class PlayerInputController : MonoBehaviour
         punchAction.Dispose();
         kickAction.Dispose();
         abilityAction.Dispose();
+        ability2Action.Dispose();
         blockAction.Dispose();
         specialAction.Dispose();
         dashAction.Dispose();
@@ -100,7 +106,9 @@ public class PlayerInputController : MonoBehaviour
         if (kickAction.WasPressedThisFrame())
             combat.Kick();
         if (abilityAction.WasPressedThisFrame() && abilities != null)
-            abilities.UseAbility();
+            abilities.UseAbility(0);
+        if (ability2Action.WasPressedThisFrame() && abilities != null)
+            abilities.UseAbility(1);
         if (specialAction.WasPressedThisFrame())
             combat.Special();
 

@@ -137,12 +137,14 @@ public class FighterCombat : MonoBehaviour
     {
         health.Damaged += OnDamaged;
         health.Died += OnDied;
+        health.Revived += OnRevived;
     }
 
     void OnDisable()
     {
         health.Damaged -= OnDamaged;
         health.Died -= OnDied;
+        health.Revived -= OnRevived;
     }
 
     public void Punch() => StartAttack(punch, AttackType.Punch);
@@ -208,7 +210,7 @@ public class FighterCombat : MonoBehaviour
             Health target = col.GetComponentInParent<Health>();
             // HashSet.Add returns false if this swing already hit the target.
             if (target == null || target == health || !hitThisSwing.Add(target)) continue;
-            if (target.IsDead) continue;
+            if (target.IsDead || target.IsInvincible) continue; // respawn invincibility: the swing passes through
 
             int multiplier = abilities != null ? abilities.DamageMultiplier : 1;
             HitInfo hit = new HitInfo
@@ -310,6 +312,15 @@ public class FighterCombat : MonoBehaviour
         int direction = health.LastHitDirection != 0 ? health.LastHitDirection : -fighter.FacingDirection;
         fighter.Launch(new Vector2(knockoutLaunch.x * direction, knockoutLaunch.y));
         Debug.Log($"{name} is K.O.", this);
+    }
+
+    // Respawned by Lives: back to a clean, free-to-act state.
+    void OnRevived()
+    {
+        current = null;
+        stunTime = 0f;
+        IsGuarding = false;
+        UpdateMovementLock();
     }
 
     void UpdateMovementLock()

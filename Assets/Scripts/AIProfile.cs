@@ -29,6 +29,9 @@ public class AIProfile : ScriptableObject
     [Tooltip("Chance per decision to keep fighting instead of going for a pickup when the target is in range.")]
     [Range(0f, 1f)] public float fightOverPickupChance = 0.5f;
 
+    [Tooltip("Chance to jump for a falling pickup passing overhead when it is close and safe to.")]
+    [Range(0f, 1f)] public float airGrabChance = 0.6f;
+
     [Header("Abilities")]
     [Tooltip("Chance per decision to consider using a held ability.")]
     [Range(0f, 1f)] public float useAbilityChance = 0.35f;
@@ -60,6 +63,10 @@ public class AIProfile : ScriptableObject
     [Header("Turning")]
     [Tooltip("Seconds after the player gets behind it before it jumps to turn around (min, max). Fighters can only turn mid-air.")]
     public Vector2 turnReactionTime = new Vector2(0.25f, 0.5f);
+
+    [Header("Last Heart")]
+    [Tooltip("How much more carefully it plays on its last heart: 0 = no change; 1 = blocks, dodges and backs off a lot more, keeps stamina in reserve, uses abilities and the special smartly, heals early and only jumps for pickups when well clear.")]
+    [Range(0f, 1f)] public float lastHeartCaution = 0.5f;
 
     [Header("Stat Bonus")]
     [Tooltip("Added to the fighter's max HP.")]

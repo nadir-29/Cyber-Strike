@@ -21,6 +21,7 @@ MonoBehaviour:
   backOffTime: {x: 0.5, y: 1.1}
   pickupNoticeDelay: 2.5
   fightOverPickupChance: 0.75
+  airGrabChance: 0.3
   useAbilityChance: 0.2
   abilitySmarts: 0.2
   blockChance: 0.1
@@ -32,5 +33,6 @@ MonoBehaviour:
   dashInChance: 0.1
   dodgeChance: 0.04
   turnReactionTime: {x: 0.7, y: 1.2}
+  lastHeartCaution: 0.15
   bonusHealth: 0
   damageMultiplier: 1

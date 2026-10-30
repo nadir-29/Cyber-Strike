@@ -4,13 +4,17 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // Match flow: a "3, 2, 1, FIGHT!" countdown with both fighters held, then the fight, then the
-// winner's victory pose and the win/loss screen once either fighter is knocked out. Holds fighters by switching their input
-// controllers off; gameplay rules stay in Fighter and friends.
+// winner's victory pose and the win/loss screen once either fighter runs out of hearts (Lives; each KO
+// before that costs a heart and the fighter respawns). Gives both fighters the heart count picked on the
+// select screen (MatchSettings). Holds fighters by switching their input controllers off; gameplay rules
+// stay in Fighter and friends.
 public class MatchManager : MonoBehaviour
 {
     [Header("Fighters")]
     [SerializeField] Health player;
     [SerializeField] Health opponent;
+    [SerializeField] Lives playerLives;
+    [SerializeField] Lives opponentLives;
     [Tooltip("Input controllers held off during the countdown and after the knockout.")]
     [SerializeField] Behaviour[] controllers;
     [SerializeField] PickupSpawner pickupSpawner;
@@ -33,6 +37,8 @@ public class MatchManager : MonoBehaviour
     [SerializeField] Button menuButton;
     [Tooltip("Real seconds after the knockout before the winner strikes the victory pose, so the KO plays out.")]
     [SerializeField] float victoryDelay = 1f;
+    [Tooltip("Longest real seconds to wait for a winner that is mid-respawn to come back before posing anyway.")]
+    [SerializeField] float respawnTimeout = 2.5f;
     [Tooltip("Longest real seconds to wait for an airborne winner to land before posing anyway.")]
     [SerializeField] float landingTimeout = 1f;
     [Tooltip("Real seconds the victory pose plays before the result screen shows.")]
@@ -49,6 +55,8 @@ public class MatchManager : MonoBehaviour
     void Awake()
     {
         TimeControl.ResetAll();
+        if (playerLives != null) playerLives.SetMax(MatchSettings.Hearts);
+        if (opponentLives != null) opponentLives.SetMax(MatchSettings.Hearts);
         SetFightersActive(false);
         if (pickupSpawner != null) pickupSpawner.enabled = false;
 
@@ -66,15 +74,18 @@ public class MatchManager : MonoBehaviour
 
     void OnEnable()
     {
-        if (player != null) player.Died += OnKnockout;
-        if (opponent != null) opponent.Died += OnKnockout;
+        if (playerLives != null) playerLives.OutOfHearts += OnKnockout;
+        if (opponentLives != null) opponentLives.OutOfHearts += OnKnockout;
     }
 
     void OnDisable()
     {
-        if (player != null) player.Died -= OnKnockout;
-        if (opponent != null) opponent.Died -= OnKnockout;
+        if (playerLives != null) playerLives.OutOfHearts -= OnKnockout;
+        if (opponentLives != null) opponentLives.OutOfHearts -= OnKnockout;
     }
+
+    bool PlayerOut => playerLives != null ? playerLives.IsOut : player.IsDead;
+    bool OpponentOut => opponentLives != null ? opponentLives.IsOut : opponent != null && opponent.IsDead;
 
     void Start()
     {
@@ -133,15 +144,16 @@ public class MatchManager : MonoBehaviour
         if (pickupSpawner != null) pickupSpawner.enabled = false;
         if (countdownText != null) countdownText.gameObject.SetActive(false);
 
-        StartCoroutine(ShowResult(opponent != null && opponent.IsDead && !player.IsDead));
+        StartCoroutine(ShowResult());
     }
 
-    IEnumerator ShowResult(bool playerWon)
+    IEnumerator ShowResult()
     {
         yield return new WaitForSecondsRealtime(victoryDelay);
 
-        // Double KO: nobody poses.
-        Health winner = !player.IsDead ? player : opponent != null && !opponent.IsDead ? opponent : null;
+        // Decided after the delay, so a same-moment double KO counts as one. Double KO: nobody poses.
+        bool playerWon = OpponentOut && !PlayerOut;
+        Health winner = !PlayerOut ? player : !OpponentOut ? opponent : null;
         if (winner != null) yield return VictoryPose(winner, winner == player ? opponent : player);
         if (resultPanel == null) yield break;
 
@@ -164,9 +176,14 @@ public class MatchManager : MonoBehaviour
         resultPanel.blocksRaycasts = true;
     }
 
-    // The winner lands, turns to the loser and holds its victory pose for a moment.
+    // The winner (back from a respawn if it was mid-KO) lands, turns to the loser and holds its victory
+    // pose for a moment.
     IEnumerator VictoryPose(Health winner, Health loser)
     {
+        for (float time = 0f; time < respawnTimeout && winner.IsDead; time += Time.unscaledDeltaTime)
+            yield return null;
+        if (winner.IsDead) yield break;
+
         Fighter fighter = winner.GetComponent<Fighter>();
         if (fighter != null)
         {

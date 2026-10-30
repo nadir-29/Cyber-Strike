@@ -17,6 +17,7 @@ public class FighterAnimator : MonoBehaviour
     static readonly int SpecialHash = Animator.StringToHash("Special");
     static readonly int DashingHash = Animator.StringToHash("Dashing");
     static readonly int BackwardHash = Animator.StringToHash("Backward");
+    static readonly int IdleHash = Animator.StringToHash("Idle");
 
     Fighter fighter;
     FighterCombat combat;
@@ -35,6 +36,7 @@ public class FighterAnimator : MonoBehaviour
 
     void OnEnable()
     {
+        if (health != null) health.Revived += OnRevived;
         if (combat == null) return;
         combat.AttackStarted += OnAttackStarted;
         combat.HitTaken += OnHitTaken;
@@ -43,6 +45,7 @@ public class FighterAnimator : MonoBehaviour
 
     void OnDisable()
     {
+        if (health != null) health.Revived -= OnRevived;
         if (combat == null) return;
         combat.AttackStarted -= OnAttackStarted;
         combat.HitTaken -= OnHitTaken;
@@ -82,6 +85,18 @@ public class FighterAnimator : MonoBehaviour
         animator.ResetTrigger(HurtHash);
         animator.ResetTrigger(BlockHitHash);
         animator.SetTrigger(WinHash);
+    }
+
+    // Respawned: KO has no exit transition, so jump straight back to Idle with nothing pending.
+    void OnRevived()
+    {
+        animator.ResetTrigger(PunchHash);
+        animator.ResetTrigger(KickHash);
+        animator.ResetTrigger(SpecialHash);
+        animator.ResetTrigger(HurtHash);
+        animator.ResetTrigger(BlockHitHash);
+        animator.SetBool(DeadHash, false);
+        animator.Play(IdleHash, 0, 0f);
     }
 
     void OnBlocked(FighterCombat.HitInfo hit) => animator.SetTrigger(BlockHitHash);

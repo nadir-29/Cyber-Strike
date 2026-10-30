@@ -1731,7 +1731,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e689161e2a3a6904f82fef297c6642cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelText
-  text: "CONTROLS\n\nA / D      MOVE   \nSHIFT+A/D  DASH   \nSPACE      JUMP   \nJUMP+BACK  TURN   \nLMB        PUNCH  \nF          KICK   \nQ          SPECIAL\nRMB        BLOCK  \nE          ABILITY"
+  text: "CONTROLS\n\nA / D      MOVE   \nSHIFT+A/D  DASH   \nSPACE      JUMP   \nJUMP+BACK  TURN   \nLMB        PUNCH  \nF          KICK   \nQ          SPECIAL\nRMB        BLOCK  \nE / R      ABILITY"
   pixelScale: 4.6
   letterSpacing: 1
   lineSpacing: 2

@@ -17,9 +17,9 @@ Built with Unity 6 (6000.6.7f1), 2D URP and the Input System package.
 | Kick        | F                  |
 | Special     | Q (meter full)     |
 | Block       | Hold right mouse   |
-| Use ability | E                  |
+| Use ability | E (slot 1) / R (slot 2) |
 
-Menus: mouse, or Left/Right (A/D) + Enter on the fighter select screen; Esc goes back.
+Menus: mouse, or Left/Right (A/D) + Enter on the fighter select screen, Up/Down (W/S) for hearts; Esc goes back.
 
 ## Movement and facing
 
@@ -69,6 +69,18 @@ The arena is drenched: two layers of pixel rain (faint and slow far away, bright
 with tiny splashes on the alley floor, neon signs that now and then buzz, glitch or cut out (never all
 at once) with an electric hum, and a quiet looping rain ambience. There's no music.
 All of it stays behind the fighters and the HUD.
+
+## Changes from the one-pager
+
+- **Falling pickups:** a pickup still spawns every 10 s, but now either on the ground or falling from the sky
+  at a random spot, glowing as it drops. Jump into one to grab it mid-air, or pick it up after it lands.
+- **Two ability slots:** hold up to 2 abilities; E uses slot 1, R slot 2. With both full you can't pick up.
+  Ability Steal takes the opponent's slot 1 ability (slot 2 if slot 1 is empty), or stays stored if they have none.
+- **Hearts:** each fighter has hearts (pick 1–5 on the fighter select screen, default 3; Restart keeps it).
+  At 0 HP you lose a heart, get knocked out briefly, then respawn at your start with full HP, an empty special
+  meter, your abilities kept and ~1.5 s of flashing invincibility. Run out of hearts and you lose the match.
+- **CPU:** jumps for falling pickups when it's close and safe, uses both slots sensibly, and plays more
+  carefully on its last heart (Hard most of all).
 
 ## Running
 

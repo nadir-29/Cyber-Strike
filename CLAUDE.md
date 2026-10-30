@@ -36,7 +36,7 @@
 | Kick        | F             |
 | Special (cyber uppercut) | Q (meter full) |
 | Block       | Hold right mouse |
-| Use ability | E             |
+| Use ability | E (slot 1) / R (slot 2) |
 
 ### Movement and facing
 
@@ -48,7 +48,8 @@
 
 ### Combat
 
-- Both fighters start at 100 HP (the Hard opponent gets a small bonus, see CPU opponents). Reducing the opponent to 0 HP wins.
+- Both fighters start at 100 HP (the Hard opponent gets a small bonus, see CPU opponents).
+- Hearts (lives, `Lives`): each fighter has `MatchSettings.Hearts` hearts (1–5, default 3, picked on Fighter Select), shown as pixel hearts under the bars (`HeartsDisplay`; a lost heart blinks and pops, the last one beats). At 0 HP a fighter loses a heart, the KO plays, and after `respawnDelay` 1.8 s (real) it respawns at its start position and facing (`Fighter.Respawn`, `Health.Revive`) with full HP, an empty special meter, full stamina, its abilities kept and 1.5 s of invincibility (blinking, hits pass through). Components reset themselves on `Health.Revived`. The match ends when someone runs out of hearts (`Lives.OutOfHearts`); `MatchManager` waits for a mid-respawn winner before the pose.
 - An attack must never deal damage more than once per swing.
 - Each fighter has a health bar.
 - Knockout: the final blow launches the loser backward, with brief slow motion, a flicker and a topple.
@@ -87,17 +88,18 @@
 
 ### Ability pickups
 
-- A random ability pickup spawns every 10 s.
-- Each fighter holds at most 1 ability. Both player and AI can collect pickups.
+- A random ability pickup spawns every 10 s (at most 4 in the arena): half the time on the ground at a free spawn point, otherwise falling from the sky (`skyY` 5.8) at a random x at 2.6 u/s, glowing and trailing sparks in its colour, landing at the spawn points' height. Falling pickups can be grabbed mid-air (jump into them) or after they land.
+- Each fighter holds up to 2 abilities (`FighterAbilities`, slots 0/1): E uses slot 1, R slot 2. A pickup fills the first empty slot; with both full it can't be picked up. Both slots show under each health bar (`AbilityIcon.slot`). Both player and AI can collect pickups.
 - Abilities:
   - **Double Damage:** all attacks deal 2x damage for 5 s.
   - **Healing:** +20 HP, capped at max HP.
-  - **Ability Steal:** takes the opponent's held ability; if they have none, Ability Steal is stored for later.
+  - **Ability Steal:** takes the opponent's slot 1 ability (slot 2 if slot 1 is empty) into Ability Steal's slot; if they have none, Ability Steal stays stored.
   - **Ice Strike:** the next successful punch slows the opponent for 3 s.
 
 ### AI
 
-- Approaches the player, attacks when in range, and goes for pickups.
+- Approaches the player, attacks when in range, and goes for pickups while it has a free slot. Jumps for a falling pickup passing overhead when close and safe (player at least `airGrabSafeDistance` away, more on its last heart; `AIProfile.airGrabChance` Easy 0.3, Medium 0.6, Hard 0.9). Uses whichever slot helps most (Healing when hurt > Steal when the player holds something > Double Damage / Ice Strike in range); less picky with both slots full and a pickup waiting. Doesn't attack an invincible (just respawned) player; collects pickups while the player is down.
+- Last heart (`AIProfile.lastHeartCaution`, Easy 0.15, Medium 0.5, Hard 0.9): blocks, dodges and backs off more, keeps more stamina, smarter abilities and special, heals at once below half HP, and needs more room before jumping for pickups. Applies whenever it's on its last heart (including 1-heart matches).
 - Follows the same facing rules as the player: it never turns on the ground. When the player gets behind it, it waits its turn reaction time (`AIProfile.turnReactionTime`) and then jumps, steering toward the player mid-air to turn. It only attacks, fires its special or blocks while facing the player (a raised guard drops if the player gets behind it). Easy is slow to turn (0.7–1.2 s), Medium 0.3–0.55 s, Hard almost instantly (0.06–0.15 s).
 - Special: fires the uppercut when its meter is full. A smart AI waits until the player is in range and not guarding; a careless one also throws it into a guard or from a bit too far and whiffs. Easy is careless and hesitant, Hard fires almost every time it has a clean opening.
 - Dash: dashes in when approaching the player or a pickup from more than 4 units away, and may dash away (dodge) from an attack the player starts in front of it, twice as likely against the special. A dodge waits up to 0.3 s for the AI to be free to dash, then gives up.
@@ -123,7 +125,7 @@
 
 - **Flow:** Title → Fighter Select → Fight. Restart keeps the same opponent; Menu goes back to Title.
 - **Title:** game title, controls panel (matches the Controls table), Start button (goes to Fighter Select).
-- **Fighter Select** (`FighterSelect` scene): 3 neon cards with portrait, name, difficulty stars (1–3) and bio. Hover or Left/Right (A/D) highlights; click or Enter picks; Back button or Esc returns to Title.
+- **Fighter Select** (`FighterSelect` scene): 3 neon cards with portrait, name, difficulty stars (1–3) and bio. Hover or Left/Right (A/D) highlights; click or Enter picks; Back button or Esc returns to Title. A HEARTS selector (top right, `HeartsSelector`): < / > buttons or Up/Down (W/S), 1–5 hearts shown as pixel hearts, UI sounds, arrows dim at the limits. Stored in `MatchSettings.Hearts` (static, kept for Restart, reset each Play session).
 - **Win / Loss:** Restart and Menu buttons.
 
 ### Art and audio
@@ -137,7 +139,7 @@
   - OBSIDIAN (cold, menacing): points at the fallen foe as the red eyes flare, then a clenched fist at the chest, eyes pulsing, a slight head tilt.
   - The CPU's base sheet has a plain fist pump; opponents get theirs through `FighterSkin` (their `OpponentData.sprites` include the win strip).
 - SFX: punch, kick, hit, deflect (blocked hit), special (uppercut wind-up), special hit, special ready (meter full), dash, pickup, ability, win/loss, neon buzz; plus a looping rain ambience (see Atmosphere).
-- UI SFX (`Assets/Audio/UI/`, generated by `Tools/generate_sfx.py`): a soft hover blip and a click confirm, quieter than combat. Every menu button (Title Start/Quit, Fighter Select cards/Back, Win/Loss Restart/Menu) has a `UIButtonSound`: hover plays once per enter, click/Enter confirms, missing clips are skipped. Sounds play through `AudioManager.PlayUI`, a persistent `DontDestroyOnLoad` source, so a click that loads a scene is still heard. Fighter Select drives card hover/click sounds from its keyboard highlight.
+- UI SFX (`Assets/Audio/UI/`, generated by `Tools/generate_sfx.py`): a soft hover blip and a click confirm, quieter than combat. Every menu button (Title Start/Quit, Fighter Select cards/Back/Hearts arrows, Win/Loss Restart/Menu) has a `UIButtonSound`: hover plays once per enter, click/Enter confirms, missing clips are skipped. Sounds play through `AudioManager.PlayUI`, a persistent `DontDestroyOnLoad` source, so a click that loads a scene is still heard. Fighter Select drives card hover/click sounds from its keyboard highlight.
 - `README.md` also lists the controls; keep it in sync with the Controls table.
 - No music.
 

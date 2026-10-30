@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 
 // Stamina for a fighter. Attacks and jumps spend it; it regenerates after a short pause.
+// Refills when the fighter respawns (Health.Revived).
 public class Stamina : MonoBehaviour
 {
     [SerializeField] float maxStamina = 100f;
@@ -10,6 +11,7 @@ public class Stamina : MonoBehaviour
     [SerializeField] float regenDelay = 0.6f;
 
     float regenTimer;
+    Health health;
 
     public float Max => maxStamina;
     public float Current { get; private set; }
@@ -23,6 +25,25 @@ public class Stamina : MonoBehaviour
     void Awake()
     {
         Current = maxStamina;
+        health = GetComponent<Health>();
+    }
+
+    void OnEnable()
+    {
+        if (health != null) health.Revived += Refill;
+    }
+
+    void OnDisable()
+    {
+        if (health != null) health.Revived -= Refill;
+    }
+
+    // A respawned fighter comes back fresh.
+    void Refill()
+    {
+        Current = maxStamina;
+        regenTimer = 0f;
+        Changed?.Invoke(Current, maxStamina);
     }
 
     // Spends the amount if there is enough; otherwise spends nothing and returns false.

@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// HUD slot showing a fighter's held ability. Display only: reads FighterAbilities, never changes it.
+// HUD slot showing one of a fighter's two held abilities. Display only: reads FighterAbilities, never changes it.
 public class AbilityIcon : MonoBehaviour
 {
     [SerializeField] FighterAbilities target;
+    [Tooltip("0 = slot 1 (E), 1 = slot 2 (R).")]
+    [SerializeField, Range(0, FighterAbilities.SlotCount - 1)] int slot;
     [SerializeField] AbilityCatalog catalog;
     [SerializeField] Image icon;
 
@@ -28,32 +30,33 @@ public class AbilityIcon : MonoBehaviour
     void OnEnable()
     {
         if (target == null) return;
-        target.HeldChanged += OnHeldChanged;
+        target.SlotChanged += OnSlotChanged;
         target.UseRefused += OnUseRefused;
     }
 
     void OnDisable()
     {
         if (target == null) return;
-        target.HeldChanged -= OnHeldChanged;
+        target.SlotChanged -= OnSlotChanged;
         target.UseRefused -= OnUseRefused;
     }
 
     void Start()
     {
-        Show(target != null ? target.Held : AbilityType.None);
+        Show(target != null ? target.Get(slot) : AbilityType.None);
         popTimer = 0f;
     }
 
-    void OnHeldChanged(AbilityType type)
+    void OnSlotChanged(int changed, AbilityType type)
     {
+        if (changed != slot) return;
         Show(type);
         popTimer = popTime;
     }
 
-    void OnUseRefused(AbilityType type)
+    void OnUseRefused(int refused, AbilityType type)
     {
-        shakeTimer = shakeTime;
+        if (refused == slot) shakeTimer = shakeTime;
     }
 
     void Show(AbilityType type)

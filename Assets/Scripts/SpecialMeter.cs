@@ -36,13 +36,23 @@ public class SpecialMeter : MonoBehaviour
     void OnEnable()
     {
         health.Changed += OnHealthChanged;
+        health.Revived += OnRevived;
         combat.HitLanded += OnHitLanded;
     }
 
     void OnDisable()
     {
         health.Changed -= OnHealthChanged;
+        health.Revived -= OnRevived;
         combat.HitLanded -= OnHitLanded;
+    }
+
+    // A respawned fighter starts with an empty meter.
+    void OnRevived()
+    {
+        lastHealth = health.Current;
+        Current = 0f;
+        Changed?.Invoke(Current, maxMeter);
     }
 
     void Start()

@@ -68,7 +68,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float freezeVolume = 0.45f;
     [SerializeField, Range(0f, 1f)] float jingleVolume = 0.9f;
     [SerializeField, Range(0f, 0.3f)] float pitchVariation = 0.08f;
-    [Tooltip("Real seconds after the knockout before the win/loss jingle plays.")]
+    [Tooltip("Real seconds after the final knockout (last heart lost) before the win/loss jingle plays.")]
     [SerializeField] float jingleDelay = 0.6f;
     [SerializeField] int voices = 8;
 
@@ -92,18 +92,18 @@ public class AudioManager : MonoBehaviour
     {
         Hook(player, true);
         Hook(opponent, true);
-        Health playerHealth = Get<Health>(player), opponentHealth = Get<Health>(opponent);
-        if (playerHealth != null) playerHealth.Died += OnPlayerDied;
-        if (opponentHealth != null) opponentHealth.Died += OnOpponentDied;
+        Lives playerLives = Get<Lives>(player), opponentLives = Get<Lives>(opponent);
+        if (playerLives != null) playerLives.OutOfHearts += OnPlayerOut;
+        if (opponentLives != null) opponentLives.OutOfHearts += OnOpponentOut;
     }
 
     void OnDisable()
     {
         Hook(player, false);
         Hook(opponent, false);
-        Health playerHealth = Get<Health>(player), opponentHealth = Get<Health>(opponent);
-        if (playerHealth != null) playerHealth.Died -= OnPlayerDied;
-        if (opponentHealth != null) opponentHealth.Died -= OnOpponentDied;
+        Lives playerLives = Get<Lives>(player), opponentLives = Get<Lives>(opponent);
+        if (playerLives != null) playerLives.OutOfHearts -= OnPlayerOut;
+        if (opponentLives != null) opponentLives.OutOfHearts -= OnOpponentOut;
     }
 
     void Hook(GameObject fighter, bool subscribe)
@@ -149,8 +149,8 @@ public class AudioManager : MonoBehaviour
     void OnPickedUp(AbilityType type) => Play(pickup, pickupVolume, false);
     void OnAbilityUsed(AbilityType type) => Play(AbilityClip(type), abilityVolume, false);
     void OnSlowed() => Play(AbilityClip(AbilityType.IceStrike), freezeVolume, true);
-    void OnPlayerDied() => EndMatch(lose);
-    void OnOpponentDied() => EndMatch(win);
+    void OnPlayerOut() => EndMatch(lose);
+    void OnOpponentOut() => EndMatch(win);
 
     void EndMatch(AudioClip jingle)
     {
