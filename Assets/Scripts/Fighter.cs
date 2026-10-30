@@ -1,7 +1,8 @@
 using UnityEngine;
 
 // Shared fighter logic for both the player and the AI.
-// Input controllers (PlayerInputController / AIController) only call SetMoveInput and Jump.
+// Input controllers (PlayerInputController / AIController) only call SetMoveInput and Jump
+// here, and Punch / Kick on FighterCombat.
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class Fighter : MonoBehaviour
 {
@@ -20,12 +21,15 @@ public class Fighter : MonoBehaviour
 
     public bool IsGrounded { get; private set; }
     public int FacingDirection { get; private set; } = 1;
+    // Set by FighterCombat while attacking, stunned or knocked out.
+    public bool MovementLocked { get; set; }
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
         rb.freezeRotation = true;
+        FacingDirection = transform.localScale.x < 0f ? -1 : 1;
 
         if (groundLayer == 0)
             Debug.LogWarning($"{name}: Ground Layer is not set on Fighter, so it can never jump.", this);
@@ -48,14 +52,18 @@ public class Fighter : MonoBehaviour
         IsGrounded = CheckGrounded();
 
         Vector2 velocity = rb.linearVelocity;
-        velocity.x = moveInput * moveSpeed;
+        if (!MovementLocked)
+            velocity.x = moveInput * moveSpeed;
+        else if (IsGrounded)
+            velocity.x = 0f; // airborne attacks keep their momentum
 
-        if (jumpRequested && IsGrounded)
+        if (jumpRequested && IsGrounded && !MovementLocked)
             velocity.y = jumpVelocity;
         jumpRequested = false;
 
         rb.linearVelocity = velocity;
 
+        if (MovementLocked) return;
         if (moveInput > 0.01f) SetFacing(1);
         else if (moveInput < -0.01f) SetFacing(-1);
     }

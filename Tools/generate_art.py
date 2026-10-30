@@ -8,6 +8,7 @@ Outputs
   Assets/Art/Backdrop/backdrop_near.png  640x360, alpha   (alley walls, pipes, dumpster, puddles)
   Assets/Art/Fighters/fighter_player.png 384x384 sheet of 64x64 frames
   Assets/Art/Fighters/fighter_ai.png     same layout, opponent colors
+  Assets/Art/UI/hud_*.png                health bar frames (P1 / CPU) and greyscale fills
 
 Backdrop is 16:9 and meant for 30 pixels per unit (12 x 21.3 units).
 Fighter sheet rows, top to bottom: idle(4) walk(6) jump(2) punch(3) kick(3) hurt(2).
@@ -17,7 +18,7 @@ import random
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
 ART = ROOT / "Assets" / "Art"
@@ -588,6 +589,92 @@ def make_sheet(pal):
     return sheet
 
 
+# ---------------------------------------------------------------- HUD
+
+HUD_W, HUD_H = 184, 22
+FILL_POS = (32, 6)       # top-left of the fill inside the player frame
+FILL_W, FILL_H = 140, 10
+TAG_FONT = {
+    "P": ["110", "101", "110", "100", "100"],
+    "1": ["010", "110", "010", "010", "111"],
+    "C": ["011", "100", "100", "100", "011"],
+    "U": ["101", "101", "101", "101", "111"],
+}
+
+
+def para_rows(x0, y0, w, h):
+    """Rows of a right-leaning parallelogram: (y, left x, right x)."""
+    for y in range(y0, y0 + h):
+        left = x0 + (y0 + h - 1 - y) // 2
+        yield y, left, left + w - 1
+
+
+def draw_tag_text(d, x, y, text, color):
+    for ch in text:
+        for gy, row in enumerate(TAG_FONT[ch]):
+            for gx, bit in enumerate(row):
+                if bit == "1":
+                    d.point((x + gx, y + gy), fill=color)
+        x += 4
+
+
+def hud_frame(accent):
+    img = Image.new("RGBA", (HUD_W, HUD_H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    plate, dim = (8, 6, 18, 235), lerp(accent, (8, 6, 18), 0.6) + (255,)
+    rows = list(para_rows(0, 0, 172, HUD_H))
+    for y, l, r in rows:
+        d.line([l, y, r, y], fill=plate)
+        d.point((l, y), fill=accent + (255,))
+        d.point((r, y), fill=accent + (255,))
+    for y, l, r in (rows[0], rows[-1]):
+        d.line([l, y, r, y], fill=accent + (255,))
+    for y, l, r in para_rows(2, 2, 168, HUD_H - 4):  # inner trim
+        d.point((l, y), fill=dim)
+        d.point((r, y), fill=dim)
+    for y, l, r in para_rows(4, 4, 24, 14):           # name tag block
+        d.line([l, y, r, y], fill=accent + (255,))
+    for y, l, r in para_rows(FILL_POS[0], FILL_POS[1], FILL_W, FILL_H):  # empty slot
+        d.line([l, y, r, y], fill=(24, 16, 36, 255))
+    for x in range(40, 168, 10):                      # ticks under the slot
+        d.line([x, 18, x + 2, 18], fill=dim)
+    d.line([150, 0, 168, 0], fill=lerp(accent, (255, 255, 255), 0.6) + (255,))  # bright notch
+    d.line([151, 1, 160, 1], fill=lerp(accent, (255, 255, 255), 0.3) + (255,))
+    return img
+
+
+def hud_fill():
+    """Greyscale segmented fill; tinted per fighter by the UI Image colour."""
+    w = FILL_W + (FILL_H - 1) // 2
+    img = Image.new("RGBA", (w, FILL_H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    shades = [255, 235, 205, 205, 205, 205, 205, 170, 170, 140]
+    for y, l, r in para_rows(0, 0, FILL_W, FILL_H):
+        v = shades[y]
+        d.line([l, y, r, y], fill=(v, v, v, 255))
+        for gx in range(l + 7, r, 8):  # slanted segment gaps
+            g = int(v * 0.55)
+            d.point((gx, y), fill=(g, g, g, 255))
+    return img
+
+
+def make_hud(out):
+    out.mkdir(parents=True, exist_ok=True)
+    tag_y = 4 + (14 - 5) // 2
+
+    player = hud_frame(CYAN)
+    draw_tag_text(ImageDraw.Draw(player), 16, tag_y, "P1", (8, 6, 18, 255))
+    player.save(out / "hud_frame_player.png")
+
+    ai = ImageOps.mirror(hud_frame((255, 120, 30)))
+    draw_tag_text(ImageDraw.Draw(ai), HUD_W - 1 - 19 - 5, tag_y, "CPU", (8, 6, 18, 255))
+    ai.save(out / "hud_frame_ai.png")
+
+    fill = hud_fill()
+    fill.save(out / "hud_fill_left.png")
+    ImageOps.mirror(fill).save(out / "hud_fill_right.png")
+
+
 # ---------------------------------------------------------------- main
 
 def main():
@@ -603,6 +690,7 @@ def main():
     player, ai = make_sheet(PLAYER_PALETTE), make_sheet(AI_PALETTE)
     player.save(ART / "Fighters" / "fighter_player.png")
     ai.save(ART / "Fighters" / "fighter_ai.png")
+    make_hud(ART / "UI")
 
     if len(sys.argv) > 1:  # optional upscaled previews for review
         out = Path(sys.argv[1])
