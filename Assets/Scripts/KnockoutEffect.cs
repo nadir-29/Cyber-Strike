@@ -27,7 +27,6 @@ public class KnockoutEffect : MonoBehaviour
     SpriteRenderer sprite;
     Fighter fighter;
     bool slowMotionActive;
-    float defaultFixedDeltaTime;
 
     void Awake()
     {
@@ -35,7 +34,6 @@ public class KnockoutEffect : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         sprite = GetComponent<SpriteRenderer>();
         fighter = GetComponent<Fighter>();
-        defaultFixedDeltaTime = Time.fixedDeltaTime;
     }
 
     void OnEnable()
@@ -59,8 +57,7 @@ public class KnockoutEffect : MonoBehaviour
     IEnumerator SlowMotion()
     {
         slowMotionActive = true;
-        Time.timeScale = slowTimeScale;
-        Time.fixedDeltaTime = defaultFixedDeltaTime * slowTimeScale;
+        TimeControl.SetSlowMotion(slowTimeScale);
         yield return new WaitForSecondsRealtime(slowDuration);
         EndSlowMotion();
     }
@@ -69,8 +66,7 @@ public class KnockoutEffect : MonoBehaviour
     {
         if (!slowMotionActive) return;
         slowMotionActive = false;
-        Time.timeScale = 1f;
-        Time.fixedDeltaTime = defaultFixedDeltaTime;
+        TimeControl.SetSlowMotion(1f);
     }
 
     IEnumerator Flicker()

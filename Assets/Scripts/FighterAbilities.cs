@@ -31,7 +31,10 @@ public class FighterAbilities : MonoBehaviour
     public bool IceStrikeArmed { get; private set; }
 
     public event Action<AbilityType> HeldChanged;
+    public event Action<AbilityType> PickedUp;
     public event Action<AbilityType> Used;
+    // Raised on the victim when the opponent's Ability Steal takes its ability.
+    public event Action<AbilityType> Stolen;
     // Raised when UseAbility did nothing, e.g. Ability Steal with nothing to steal.
     public event Action<AbilityType> UseRefused;
 
@@ -53,6 +56,7 @@ public class FighterAbilities : MonoBehaviour
     {
         if (type == AbilityType.None || Held != AbilityType.None || health.IsDead) return false;
         SetHeld(type);
+        PickedUp?.Invoke(type);
         return true;
     }
 
@@ -103,6 +107,7 @@ public class FighterAbilities : MonoBehaviour
     {
         AbilityType taken = Held;
         SetHeld(AbilityType.None);
+        Stolen?.Invoke(taken);
         return taken;
     }
 

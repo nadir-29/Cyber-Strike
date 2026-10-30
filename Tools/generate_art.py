@@ -12,6 +12,7 @@ Outputs
 
 Backdrop is 16:9 and meant for 30 pixels per unit (12 x 21.3 units).
 Fighter sheet rows, top to bottom: idle(4) walk(6) jump(2) punch(3) kick(3) hurt(2).
+KO strips (fighter_<who>_ko.png, 192x64): reel(flash), flung, limp (visor off).
 """
 import math
 import random
@@ -443,7 +444,7 @@ GUARD = dict(fa=40, ff=160, ba=20, bf=150)
 
 
 def pose(**kw):
-    p = dict(lean=5, ft=18, fs=-6, bt=-16, bs=4, grounded=True, hip_y=38, head=0, flash=False)
+    p = dict(lean=5, ft=18, fs=-6, bt=-16, bs=4, grounded=True, hip_y=38, head=0, flash=False, dazed=False)
     p.update(GUARD)
     p.update(kw)
     return p
@@ -470,6 +471,18 @@ def anim_frames():
     hurt = [pose(lean=-18, head=-2, ft=8, fs=-12, bt=-22, bs=-6, fa=-40, ff=10, ba=-60, bf=-20, flash=True),
             pose(lean=-26, head=-3, ft=4, fs=-18, bt=-28, bs=-10, fa=-70, ff=-30, ba=-80, bf=-50)]
     return [("idle", idle), ("walk", walk), ("jump", jump), ("punch", punch), ("kick", kick), ("hurt", hurt)]
+
+
+def ko_frames():
+    """Knockout: snapped back by the blow, flung through the air, then limp with the visor dead."""
+    return [
+        pose(grounded=False, hip_y=36, lean=-34, head=-3, ft=26, fs=6, bt=-24, bs=-30,
+             fa=-110, ff=-150, ba=-140, bf=-175, flash=True),
+        pose(grounded=False, hip_y=36, lean=-48, head=-4, ft=50, fs=30, bt=10, bs=20,
+             fa=-150, ff=-170, ba=-165, bf=160),
+        pose(grounded=False, hip_y=38, lean=-55, head=-4, ft=35, fs=50, bt=15, bs=40,
+             fa=-35, ff=-15, ba=-55, bf=-35, dazed=True),
+    ]
 
 
 def step(p, angle, length):
@@ -558,9 +571,13 @@ def draw_fighter(pal, p):
     d.polygon([(hx - 6, hy - 1), (hx - 5, hy - 6), (hx - 2, hy - 9), (hx, hy - 7), (hx + 2, hy - 10),
                (hx + 4, hy - 7), (hx + 7, hy - 8), (hx + 6, hy - 3), (hx - 1, hy - 3), (hx - 4, hy + 2)],
               fill=pal["hair"])
-    d.rectangle([hx - 2, hy - 2, hx + 6, hy], fill=pal["accent"])
-    d.line([hx + 1, hy - 2, hx + 5, hy - 2], fill=pal["accent_hi"])
-    d.point((hx + 6, hy - 1), fill=pal["accent_hi"])
+    if p["dazed"]:  # visor powered down
+        d.rectangle([hx - 2, hy - 2, hx + 6, hy], fill=lerp(pal["accent"], OUTLINE[:3], 0.7))
+        d.point((hx + 2, hy - 1), fill=pal["accent"])
+    else:
+        d.rectangle([hx - 2, hy - 2, hx + 6, hy], fill=pal["accent"])
+        d.line([hx + 1, hy - 2, hx + 5, hy - 2], fill=pal["accent_hi"])
+        d.point((hx + 6, hy - 1), fill=pal["accent_hi"])
 
     arm(p["fa"], p["ff"], pal["jacket"], pal["glove"], pal["accent_hi"])
 
@@ -587,6 +604,14 @@ def make_sheet(pal):
         for col, p in enumerate(frames):
             sheet.alpha_composite(draw_fighter(pal, p), (col * FRAME, row * FRAME))
     return sheet
+
+
+def make_ko_strip(pal):
+    frames = ko_frames()
+    strip = Image.new("RGBA", (len(frames) * FRAME, FRAME), (0, 0, 0, 0))
+    for col, p in enumerate(frames):
+        strip.alpha_composite(draw_fighter(pal, p), (col * FRAME, 0))
+    return strip
 
 
 # ---------------------------------------------------------------- HUD
@@ -690,6 +715,9 @@ def main():
     player, ai = make_sheet(PLAYER_PALETTE), make_sheet(AI_PALETTE)
     player.save(ART / "Fighters" / "fighter_player.png")
     ai.save(ART / "Fighters" / "fighter_ai.png")
+    player_ko, ai_ko = make_ko_strip(PLAYER_PALETTE), make_ko_strip(AI_PALETTE)
+    player_ko.save(ART / "Fighters" / "fighter_player_ko.png")
+    ai_ko.save(ART / "Fighters" / "fighter_ai_ko.png")
     make_hud(ART / "UI")
 
     if len(sys.argv) > 1:  # optional upscaled previews for review
@@ -703,6 +731,10 @@ def main():
         both.alpha_composite(player, (0, 0))
         both.alpha_composite(ai, (player.width, 0))
         both.resize((both.width * 3, both.height * 3), Image.NEAREST).save(out / "fighters_preview.png")
+        kos = Image.new("RGBA", (player_ko.width, player_ko.height * 2), (60, 60, 70, 255))
+        kos.alpha_composite(player_ko, (0, 0))
+        kos.alpha_composite(ai_ko, (0, FRAME))
+        kos.resize((kos.width * 4, kos.height * 4), Image.NEAREST).save(out / "ko_preview.png")
 
 
 if __name__ == "__main__":

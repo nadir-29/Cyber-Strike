@@ -29,6 +29,8 @@ public class Fighter : MonoBehaviour
     public bool MovementLocked { get; set; }
     public bool IsSlowed => slowTimer > 0f;
 
+    public event System.Action Slowed;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -71,6 +73,7 @@ public class Fighter : MonoBehaviour
     {
         slowMultiplier = multiplier;
         slowTimer = Mathf.Max(slowTimer, duration);
+        Slowed?.Invoke();
     }
 
     void FixedUpdate()

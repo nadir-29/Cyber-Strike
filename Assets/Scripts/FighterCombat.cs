@@ -9,6 +9,19 @@ public enum AttackType { Punch, Kick }
 [RequireComponent(typeof(Fighter), typeof(Health))]
 public class FighterCombat : MonoBehaviour
 {
+    public struct HitInfo
+    {
+        public FighterCombat attacker;
+        public Health target;
+        public Vector2 point;
+        public AttackType type;
+        public int damage;
+        // -1 = left, 1 = right: the way the hit pushes the target.
+        public int direction;
+        // True while the attacker's Double Damage is active.
+        public bool empowered;
+    }
+
     [Serializable]
     public class Attack
     {
@@ -50,6 +63,7 @@ public class FighterCombat : MonoBehaviour
     Stamina stamina;
     FighterAbilities abilities;
     Attack current;
+    AttackType currentType;
     float attackTime;
     float stunTime;
     ContactFilter2D hurtboxFilter;
@@ -61,6 +75,8 @@ public class FighterCombat : MonoBehaviour
 
     public event Action<AttackType> AttackStarted;
     public event Action HitTaken;
+    // Raised once per target each time one of this fighter's attacks connects.
+    public event Action<HitInfo> HitLanded;
 
     void Awake()
     {
@@ -96,6 +112,7 @@ public class FighterCombat : MonoBehaviour
         if (stamina != null && !stamina.TrySpend(attack.staminaCost)) return;
 
         current = attack;
+        currentType = type;
         attackTime = 0f;
         hitThisSwing.Clear();
         UpdateMovementLock();
@@ -125,17 +142,27 @@ public class FighterCombat : MonoBehaviour
 
     void CheckHits()
     {
-        Physics2D.OverlapBox(HitboxCenter(current), current.size, 0f, hurtboxFilter, overlaps);
+        Vector2 center = HitboxCenter(current);
+        Physics2D.OverlapBox(center, current.size, 0f, hurtboxFilter, overlaps);
         foreach (Collider2D col in overlaps)
         {
             Health target = col.GetComponentInParent<Health>();
             // HashSet.Add returns false if this swing already hit the target.
             if (target == null || target == health || !hitThisSwing.Add(target)) continue;
-            bool wasAlive = !target.IsDead;
+            if (target.IsDead) continue;
+
             int multiplier = abilities != null ? abilities.DamageMultiplier : 1;
-            target.TakeDamage(current.damage * multiplier, fighter.FacingDirection);
-            if (wasAlive && current == punch && abilities != null)
+            int damage = current.damage * multiplier;
+            AttackType type = currentType;
+            target.TakeDamage(damage, fighter.FacingDirection);
+            if (type == AttackType.Punch && abilities != null)
                 abilities.OnPunchLanded(target);
+
+            HitLanded?.Invoke(new HitInfo
+            {
+                attacker = this, target = target, point = col.ClosestPoint(center), type = type,
+                damage = damage, direction = fighter.FacingDirection, empowered = multiplier > 1,
+            });
         }
     }
 
