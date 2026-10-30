@@ -99,8 +99,10 @@ py -m http.server 8000 -d WebBuild
 ```
 
 then open http://localhost:8000 and click the game once so it gets keyboard focus. The folder can also be
-uploaded as-is to any static host (GitHub Pages, itch.io as an HTML game, Netlify, ...); it is Brotli-compressed
-with a decompression fallback, so no special server headers are needed. There's no Quit button on the web.
+uploaded as-is to any static host (GitHub Pages, itch.io as an HTML game, Netlify, ...). The build is left
+uncompressed on purpose (Player Settings > Web > Publishing Settings > Compression Format: Disabled): compressed
+`.br` / `.gz` builds need the host to send a `Content-Encoding` header, which GitHub Pages doesn't, and Pages gzips
+the files in transit anyway. There's no Quit button on the web.
 
 To rebuild: File > Build Profiles > Web, output folder `WebBuild`.
 
