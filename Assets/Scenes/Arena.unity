@@ -1432,6 +1432,7 @@ RectTransform:
   m_Children:
   - {fileID: 1919000387}
   - {fileID: 1617245926}
+  - {fileID: 1604932619}
   - {fileID: 634493551}
   - {fileID: 339111773}
   - {fileID: 2094240108}
@@ -1988,6 +1989,7 @@ GameObject:
   - component: {fileID: 1006259713}
   - component: {fileID: 1006259714}
   - component: {fileID: 1006259715}
+  - component: {fileID: 1006259716}
   m_Layer: 8
   m_Name: Dummy
   m_TagString: Untagged
@@ -2255,6 +2257,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AIController
   target: {fileID: 1505282030}
+  profile: {fileID: 0}
   punchRange: 1.3
   kickRange: 1.55
   reactionTime: {x: 0.15, y: 0.35}
@@ -2268,7 +2271,9 @@ MonoBehaviour:
   recoveredStamina: 0.6
   recoverDistance: 3.5
   fightOverPickupChance: 0.5
+  pickupNoticeDelay: 0.6
   useAbilityChance: 0.35
+  abilitySmarts: 0.7
   abilityUseRange: 3
   jumpOverDistance: 1.6
 --- !u!114 &1006259712
@@ -2350,6 +2355,19 @@ MonoBehaviour:
   glitchColorA: {r: 1, g: 0.2, b: 0.8, a: 1}
   glitchColorB: {r: 0.2, g: 1, b: 1, a: 1}
   glitchOffset: 3
+--- !u!114 &1006259716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1006259701}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfe244e7d4adf2243ba28ad6eea1a695, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FighterSkin
+  skin: []
 --- !u!1 &1062506651
 GameObject:
   m_ObjectHideFlags: 0
@@ -3342,6 +3360,156 @@ MonoBehaviour:
   glitchColorA: {r: 1, g: 0.2, b: 0.8, a: 1}
   glitchColorB: {r: 0.2, g: 1, b: 1, a: 1}
   glitchOffset: 3
+--- !u!1 &1587733814
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1587733816}
+  - component: {fileID: 1587733815}
+  m_Layer: 0
+  m_Name: OpponentLoader
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1587733815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1587733814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 457f58688569af24bbb4a8b0cc77e3b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OpponentLoader
+  roster: {fileID: 11400000, guid: eed7b114cc1e10e43873b1aabc1899ca, type: 2}
+  skin: {fileID: 1006259716}
+  ai: {fileID: 1006259711}
+  health: {fileID: 1006259702}
+  combat: {fileID: 1006259703}
+  nameLabel: {fileID: 1604932616}
+--- !u!4 &1587733816
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1587733814}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1604932615
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1604932619}
+  - component: {fileID: 1604932618}
+  - component: {fileID: 1604932617}
+  - component: {fileID: 1604932616}
+  m_Layer: 0
+  m_Name: OpponentName
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1604932616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604932615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e689161e2a3a6904f82fef297c6642cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelText
+  text: SGT. HALDEN
+  pixelScale: 3
+  letterSpacing: 1
+  lineSpacing: 3
+  autoSize: 1
+  color: {r: 1, g: 1, b: 1, a: 1}
+  glowColor: {r: 1, g: 0.73, b: 0.16, a: 0.9}
+  glowRadius: 1
+  frame: 0
+  frameColor: {r: 1, g: 0.8, b: 0.95, a: 1}
+  frameGlowColor: {r: 1, g: 0.15, b: 0.7, a: 0.9}
+  frameGap: {x: 4, y: 3}
+  background: {r: 0.03, g: 0.01, b: 0.08, a: 0.85}
+  flicker: 0
+  flickerInterval: 2.5
+--- !u!114 &1604932617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604932615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 0}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+--- !u!222 &1604932618
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604932615}
+  m_CullTransparentMesh: 1
+--- !u!224 &1604932619
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604932615}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 563188414}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -96, y: -6}
+  m_SizeDelta: {x: 201, y: 27}
+  m_Pivot: {x: 1, y: 1}
 --- !u!1 &1617245925
 GameObject:
   m_ObjectHideFlags: 0
@@ -4228,3 +4396,4 @@ SceneRoots:
   - {fileID: 2070314187}
   - {fileID: 31315973}
   - {fileID: 1300220248}
+  - {fileID: 1587733816}

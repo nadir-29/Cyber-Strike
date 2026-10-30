@@ -23,6 +23,8 @@ public class AbilityPickup : MonoBehaviour
     bool taken;
 
     public AbilityType Type { get; private set; }
+    // Seconds since it spawned.
+    public float Age => age;
 
     void Awake()
     {

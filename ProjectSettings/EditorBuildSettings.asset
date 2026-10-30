@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 90181f6b2dc80fc4ca18c64ac9688a02
+  - enabled: 1
+    path: Assets/Scenes/FighterSelect.unity
+    guid: fcb416be9d0aff048aa0aae138ec6dd1
+  - enabled: 1
     path: Assets/Scenes/Arena.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   m_configObjects:

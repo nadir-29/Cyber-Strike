@@ -1,0 +1,732 @@
+fileFormatVersion: 2
+guid: 3266f53cb5144d178722800e57c697cc
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5549486792770775906
+    second: fighter_cyborg_0
+  - first:
+      213: 8011220080470518665
+    second: fighter_cyborg_1
+  - first:
+      213: 3480358233074085796
+    second: fighter_cyborg_2
+  - first:
+      213: -3388205894574158338
+    second: fighter_cyborg_3
+  - first:
+      213: 2029854725215770383
+    second: fighter_cyborg_4
+  - first:
+      213: 2297231014097202902
+    second: fighter_cyborg_5
+  - first:
+      213: 8116887374110823844
+    second: fighter_cyborg_6
+  - first:
+      213: -5650259617452253705
+    second: fighter_cyborg_7
+  - first:
+      213: 22168908049359681
+    second: fighter_cyborg_8
+  - first:
+      213: -1245616882532733116
+    second: fighter_cyborg_9
+  - first:
+      213: 4688992685565074930
+    second: fighter_cyborg_10
+  - first:
+      213: -2269634848644221413
+    second: fighter_cyborg_11
+  - first:
+      213: -3302131663867194590
+    second: fighter_cyborg_12
+  - first:
+      213: -7246026554261746400
+    second: fighter_cyborg_13
+  - first:
+      213: 7009762281034456903
+    second: fighter_cyborg_14
+  - first:
+      213: -4922557429416985380
+    second: fighter_cyborg_15
+  - first:
+      213: 4555762115993992993
+    second: fighter_cyborg_16
+  - first:
+      213: 884057930395128274
+    second: fighter_cyborg_17
+  - first:
+      213: 8358310810103646774
+    second: fighter_cyborg_18
+  - first:
+      213: 6460596625863802446
+    second: fighter_cyborg_19
+  - first:
+      213: 6812979084581427411
+    second: fighter_cyborg_idle_0
+  - first:
+      213: -4034210624281540334
+    second: fighter_cyborg_idle_1
+  - first:
+      213: 4192930208856071102
+    second: fighter_cyborg_idle_2
+  - first:
+      213: -1916127782603781380
+    second: fighter_cyborg_idle_3
+  - first:
+      213: -5233013985994935547
+    second: fighter_cyborg_walk_0
+  - first:
+      213: -4009476536059910865
+    second: fighter_cyborg_walk_1
+  - first:
+      213: 4306341196637603744
+    second: fighter_cyborg_walk_2
+  - first:
+      213: 6766503646999331248
+    second: fighter_cyborg_walk_3
+  - first:
+      213: -6333158897455778725
+    second: fighter_cyborg_walk_4
+  - first:
+      213: -2323246141734982529
+    second: fighter_cyborg_walk_5
+  - first:
+      213: -1431940695688045083
+    second: fighter_cyborg_jump_0
+  - first:
+      213: 3870998341071157288
+    second: fighter_cyborg_jump_1
+  - first:
+      213: -6886387020856208423
+    second: fighter_cyborg_punch_0
+  - first:
+      213: -1518368356389811329
+    second: fighter_cyborg_punch_1
+  - first:
+      213: -6172955868549014139
+    second: fighter_cyborg_punch_2
+  - first:
+      213: 7814777014396459712
+    second: fighter_cyborg_kick_0
+  - first:
+      213: -4932448425978110195
+    second: fighter_cyborg_kick_1
+  - first:
+      213: -4636651460879810341
+    second: fighter_cyborg_kick_2
+  - first:
+      213: 3978149098482833537
+    second: fighter_cyborg_hurt_0
+  - first:
+      213: 7255191485820181947
+    second: fighter_cyborg_hurt_1
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 22.4
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: fighter_cyborg_idle_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 320
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d854a671609c8e50800000000000000
+      internalID: 6812979084581427411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_idle_1
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 320
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2198796bfca9308c0800000000000000
+      internalID: -4034210624281540334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_idle_2
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 320
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebbded25fc7403a30800000000000000
+      internalID: 4192930208856071102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_idle_3
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 320
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfa05ad0feb8865e0800000000000000
+      internalID: -1916127782603781380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_walk_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 256
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 503fe1461899067b0800000000000000
+      internalID: -5233013985994935547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_walk_1
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 256
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f25a2e4655a7b58c0800000000000000
+      internalID: -4009476536059910865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_walk_2
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 256
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a7073b908233cb30800000000000000
+      internalID: 4306341196637603744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_walk_3
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 256
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b1c7ca673377ed50800000000000000
+      internalID: 6766503646999331248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_walk_4
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 256
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b543b0b89891c18a0800000000000000
+      internalID: -6333158897455778725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_walk_5
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 256
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7ce61471fb22cfd0800000000000000
+      internalID: -2323246141734982529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_jump_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 192
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ed96162689b02ce0800000000000000
+      internalID: -1431940695688045083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_jump_1
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8283ca55b7c88b530800000000000000
+      internalID: 3870998341071157288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_punch_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d3510c7d73ae60a0800000000000000
+      internalID: -6886387020856208423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_punch_1
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7b0137460cadeae0800000000000000
+      internalID: -1518368356389811329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_punch_2
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 128
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58d19f0e751455aa0800000000000000
+      internalID: -6172955868549014139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_kick_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ca1df54a4aa37c60800000000000000
+      internalID: 7814777014396459712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_kick_1
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0fd3a03a4c6c8bb0800000000000000
+      internalID: -4932448425978110195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_kick_2
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 64
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd086f6ff0e47afb0800000000000000
+      internalID: -4636651460879810341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_hurt_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1881c962789353730800000000000000
+      internalID: 3978149098482833537
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fighter_cyborg_hurt_1
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbd10c9773e9fa460800000000000000
+      internalID: 7255191485820181947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      fighter_cyborg_0: 5549486792770775906
+      fighter_cyborg_1: 8011220080470518665
+      fighter_cyborg_10: 4688992685565074930
+      fighter_cyborg_11: -2269634848644221413
+      fighter_cyborg_12: -3302131663867194590
+      fighter_cyborg_13: -7246026554261746400
+      fighter_cyborg_14: 7009762281034456903
+      fighter_cyborg_15: -4922557429416985380
+      fighter_cyborg_16: 4555762115993992993
+      fighter_cyborg_17: 884057930395128274
+      fighter_cyborg_18: 8358310810103646774
+      fighter_cyborg_19: 6460596625863802446
+      fighter_cyborg_2: 3480358233074085796
+      fighter_cyborg_3: -3388205894574158338
+      fighter_cyborg_4: 2029854725215770383
+      fighter_cyborg_5: 2297231014097202902
+      fighter_cyborg_6: 8116887374110823844
+      fighter_cyborg_7: -5650259617452253705
+      fighter_cyborg_8: 22168908049359681
+      fighter_cyborg_9: -1245616882532733116
+      fighter_cyborg_hurt_0: 3978149098482833537
+      fighter_cyborg_hurt_1: 7255191485820181947
+      fighter_cyborg_idle_0: 6812979084581427411
+      fighter_cyborg_idle_1: -4034210624281540334
+      fighter_cyborg_idle_2: 4192930208856071102
+      fighter_cyborg_idle_3: -1916127782603781380
+      fighter_cyborg_jump_0: -1431940695688045083
+      fighter_cyborg_jump_1: 3870998341071157288
+      fighter_cyborg_kick_0: 7814777014396459712
+      fighter_cyborg_kick_1: -4932448425978110195
+      fighter_cyborg_kick_2: -4636651460879810341
+      fighter_cyborg_punch_0: -6886387020856208423
+      fighter_cyborg_punch_1: -1518368356389811329
+      fighter_cyborg_punch_2: -6172955868549014139
+      fighter_cyborg_walk_0: -5233013985994935547
+      fighter_cyborg_walk_1: -4009476536059910865
+      fighter_cyborg_walk_2: 4306341196637603744
+      fighter_cyborg_walk_3: 6766503646999331248
+      fighter_cyborg_walk_4: -6333158897455778725
+      fighter_cyborg_walk_5: -2323246141734982529
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

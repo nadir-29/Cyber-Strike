@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 977a10cd03628bb4685b1186a57666be, type: 3}
+  m_Name: Opponent_Medium_enforcer
+  m_EditorClassIdentifier: Assembly-CSharp::OpponentData
+  displayName: SGT. HALDEN
+  bio: Corporate security for Helix Dynamics. Disciplined, patient, by the book. Punishes every sloppy opening.
+  difficulty: 2
+  portrait: {fileID: 21300000, guid: 9476728e072685345b4f278bdf29fc20, type: 3}
+  accent: {r: 1, g: 0.73, b: 0.16, a: 1}
+  sprites:
+  - {fileID: -2323246141734982529, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -6333158897455778725, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: 6766503646999331248, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: 4306341196637603744, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -4009476536059910865, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -5233013985994935547, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -6172955868549014139, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -1518368356389811329, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -6886387020856208423, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -4636651460879810341, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -4932448425978110195, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: 7814777014396459712, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: 3870998341071157288, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -1431940695688045083, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -1916127782603781380, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: 3978149098482833537, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: 6812979084581427411, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -4034210624281540334, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: 7255191485820181947, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: 4192930208856071102, guid: b4612898cc804684ae42d8b8f56013e9, type: 3}
+  - {fileID: -3128236407624258610, guid: 806937f3799a40cfb37bc6308ffff06f, type: 3}
+  - {fileID: 9175232149246798094, guid: 806937f3799a40cfb37bc6308ffff06f, type: 3}
+  - {fileID: 2542183542642868015, guid: 806937f3799a40cfb37bc6308ffff06f, type: 3}
+  aiProfile: {fileID: 11400000, guid: 405477c102804e24b89cef388964be0a, type: 2}

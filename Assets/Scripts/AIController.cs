@@ -4,10 +4,13 @@ using UnityEngine;
 // sometimes backs off, goes for ability pickups and uses its ability when useful. Like PlayerInputController it only issues inputs; gameplay
 // rules stay in Fighter and FighterCombat.
 // Decisions are re-evaluated once per reaction interval, so the AI reacts with a delay.
+// An AIProfile (set in the Inspector or by OpponentLoader) overrides the tuning below per opponent.
 [RequireComponent(typeof(Fighter), typeof(FighterCombat), typeof(Health))]
 public class AIController : MonoBehaviour
 {
     [SerializeField] Fighter target;
+    [Tooltip("Difficulty tuning; overrides the values below when set.")]
+    [SerializeField] AIProfile profile;
 
     [Header("Ranges (centre to centre)")]
     [SerializeField] float punchRange = 1.3f;
@@ -36,8 +39,12 @@ public class AIController : MonoBehaviour
     [Header("Pickups and Abilities")]
     [Tooltip("Chance per decision to keep fighting instead of going for a pickup when the target is in range.")]
     [SerializeField, Range(0f, 1f)] float fightOverPickupChance = 0.5f;
-    [Tooltip("Chance per decision to use a held ability when it would be useful.")]
+    [Tooltip("Seconds a pickup has to be in the arena before the AI notices it.")]
+    [SerializeField, Min(0f)] float pickupNoticeDelay = 0.6f;
+    [Tooltip("Chance per decision to consider using a held ability.")]
     [SerializeField, Range(0f, 1f)] float useAbilityChance = 0.35f;
+    [Tooltip("1 = only uses an ability when it helps; 0 = fires it off as soon as it considers it.")]
+    [SerializeField, Range(0f, 1f)] float abilitySmarts = 0.7f;
     [Tooltip("Double Damage and Ice Strike are only used within this distance of the target.")]
     [SerializeField] float abilityUseRange = 3f;
     [Tooltip("Jumps over the target when it stands this close between it and a pickup.")]
@@ -62,9 +69,29 @@ public class AIController : MonoBehaviour
         stamina = GetComponent<Stamina>();
         abilities = GetComponent<FighterAbilities>();
         if (target != null) targetHealth = target.GetComponent<Health>();
+        if (profile != null) SetProfile(profile);
 
         if (target == null)
             Debug.LogWarning($"{name}: Target is not set on AIController, so it will stand still.", this);
+    }
+
+    // Copies a difficulty profile's behaviour values into this controller.
+    public void SetProfile(AIProfile newProfile)
+    {
+        profile = newProfile;
+        if (profile == null) return;
+
+        reactionTime = profile.reactionTime;
+        attackCooldown = profile.attackCooldown;
+        attackChance = profile.attackChance;
+        kickChance = profile.kickChance;
+        backOffAfterAttackChance = profile.backOffAfterAttackChance;
+        backOffWhenHitChance = profile.backOffWhenHitChance;
+        backOffTime = profile.backOffTime;
+        pickupNoticeDelay = profile.pickupNoticeDelay;
+        fightOverPickupChance = profile.fightOverPickupChance;
+        useAbilityChance = profile.useAbilityChance;
+        abilitySmarts = profile.abilitySmarts;
     }
 
     void OnEnable()
@@ -150,7 +177,7 @@ public class AIController : MonoBehaviour
             backOffTimer = Roll(backOffTime);
     }
 
-    // Heads for the nearest pickup when the ability slot is empty. Returns true if it did.
+    // Heads for the nearest noticed pickup when the ability slot is empty. Returns true if it did.
     bool GoForPickup(float distance, int toTarget)
     {
         if (abilities == null || abilities.Held != AbilityType.None) return false;
@@ -159,6 +186,7 @@ public class AIController : MonoBehaviour
         float best = float.MaxValue;
         foreach (AbilityPickup pickup in AbilityPickup.Active)
         {
+            if (pickup.Age < pickupNoticeDelay) continue;
             float d = Mathf.Abs(pickup.transform.position.x - transform.position.x);
             if (d < best)
             {
@@ -183,7 +211,9 @@ public class AIController : MonoBehaviour
         if (abilities == null || abilities.Held == AbilityType.None) return;
         if (Random.value > useAbilityChance) return;
 
-        bool useful = abilities.Held switch
+        // A careless AI uses whatever it holds without checking whether it helps.
+        bool careless = Random.value > abilitySmarts;
+        bool useful = careless || abilities.Held switch
         {
             AbilityType.Healing => health.Max - health.Current >= abilities.HealAmount,
             AbilityType.DoubleDamage => distance <= abilityUseRange && !abilities.DoubleDamageActive,

@@ -22,6 +22,14 @@ public class Health : MonoBehaviour
         Current = maxHealth;
     }
 
+    // Changes max HP and refills to it, e.g. for an opponent's HP bonus before the match starts.
+    public void SetMax(int max)
+    {
+        maxHealth = Mathf.Max(1, max);
+        Current = maxHealth;
+        Changed?.Invoke(Current, maxHealth);
+    }
+
     // Restores HP, capped at max.
     public void Heal(int amount)
     {

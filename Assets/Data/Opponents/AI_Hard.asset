@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c39d5f754bed3b40be540ce14ae5213, type: 3}
+  m_Name: AI_Hard
+  m_EditorClassIdentifier: Assembly-CSharp::AIProfile
+  reactionTime: {x: 0.07, y: 0.16}
+  attackCooldown: {x: 0.2, y: 0.5}
+  attackChance: 0.9
+  kickChance: 0.4
+  backOffAfterAttackChance: 0.12
+  backOffWhenHitChance: 0.2
+  backOffTime: {x: 0.3, y: 0.6}
+  pickupNoticeDelay: 0
+  fightOverPickupChance: 0.3
+  useAbilityChance: 0.6
+  abilitySmarts: 1
+  bonusHealth: 15
+  damageMultiplier: 1.1

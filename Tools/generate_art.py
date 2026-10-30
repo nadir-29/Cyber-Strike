@@ -9,6 +9,9 @@ Outputs
   Assets/Art/Fighters/fighter_player.png 384x384 sheet of 64x64 frames
   Assets/Art/Fighters/fighter_ai.png     same layout, opponent colors
   Assets/Art/UI/hud_*.png                health bar frames (P1 / CPU) and greyscale fills
+  Assets/Art/Fighters/Opponents/fighter_<id>.png, fighter_<id>_ko.png, portrait_<id>.png
+                                         the CPU roster (rookie, enforcer, cyborg); same layout
+  Assets/Art/UI/select_star.png, select_card.png   fighter select stars and 9-slice card frame
 
 Backdrop is 16:9 and meant for 30 pixels per unit (12 x 21.3 units).
 Fighter sheet rows, top to bottom: idle(4) walk(6) jump(2) punch(3) kick(3) hurt(2).
@@ -436,6 +439,35 @@ AI_PALETTE = dict(
     skin=(170, 112, 82), skin_dark=(132, 84, 62), hair=(232, 232, 240),
     glove=(50, 30, 34), accent=(255, 120, 30), accent_hi=(255, 226, 160),
 )
+# CPU roster for the fighter select screen. Optional palette keys: style (head/body variant),
+# sleeve/sleeve_dark (arm colors when they differ from the torso), tattoo, hair_hi.
+OPPONENT_PALETTES = {
+    # Easy: street punk rookie. Two-tone mohawk, white tank top, bare tattooed arms, lime shades.
+    "rookie": dict(
+        style="punk",
+        jacket=(214, 210, 222), jacket_hi=(246, 244, 252), jacket_dark=(150, 144, 170),
+        sleeve=(222, 168, 132), sleeve_dark=(176, 124, 100), tattoo=(40, 70, 90),
+        pants=(30, 30, 40), pants_dark=(20, 20, 28), boots=(60, 24, 40),
+        skin=(222, 168, 132), skin_dark=(176, 124, 100), hair=(255, 40, 170), hair_hi=(120, 255, 90),
+        glove=(30, 26, 36), accent=(120, 255, 90), accent_hi=(230, 255, 210),
+    ),
+    # Medium: corporate security enforcer. Slate armor, shoulder pads, sealed helmet, amber visor band.
+    "enforcer": dict(
+        style="enforcer",
+        jacket=(52, 64, 84), jacket_hi=(104, 122, 150), jacket_dark=(30, 38, 52),
+        pants=(36, 42, 56), pants_dark=(24, 28, 38), boots=(18, 18, 24),
+        skin=(196, 150, 120), skin_dark=(150, 110, 90), hair=(52, 64, 84),
+        glove=(22, 24, 30), accent=(255, 186, 40), accent_hi=(255, 240, 190),
+    ),
+    # Hard: elite cyborg assassin. Bulky gunmetal armor, back unit, cabled pale skull, red eyes.
+    "cyborg": dict(
+        style="cyborg",
+        jacket=(46, 46, 54), jacket_hi=(96, 98, 110), jacket_dark=(24, 24, 30),
+        pants=(40, 40, 48), pants_dark=(22, 22, 28), boots=(16, 16, 20),
+        skin=(206, 186, 186), skin_dark=(150, 126, 130), hair=(28, 28, 34),
+        glove=(30, 30, 36), accent=(255, 30, 50), accent_hi=(255, 190, 190),
+    ),
+}
 OUTLINE = (10, 6, 18, 255)
 FRAME = 64
 
@@ -506,6 +538,9 @@ def draw_fighter(pal, p):
     img = Image.new("RGBA", (FRAME, FRAME), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     THIGH, SHIN, UPPER, FORE = 10, 10, 8, 7
+    style = pal.get("style", "agent")
+    bulk = {"enforcer": 1, "cyborg": 2}.get(style, 0)  # extra torso half-width
+    limb = 1 if style == "cyborg" else 0               # extra limb thickness
 
     def legs_from(hip):
         out = {}
@@ -530,56 +565,130 @@ def draw_fighter(pal, p):
 
     def leg(side, color, shade):
         h, knee, ankle = legs[side]
-        segment(d, h, knee, 6, color)
-        segment(d, knee, ankle, 5, color)
+        segment(d, h, knee, 6 + limb, color)
+        segment(d, knee, ankle, 5 + limb, color)
         ax, ay = ipt(ankle)
-        d.rectangle([ax - 2, ay - 1, ax + 4, ay + 2], fill=pal["boots"])
-        d.line([ax - 2, ay + 2, ax + 4, ay + 2], fill=shade)
+        d.rectangle([ax - 2 - limb, ay - 1 - limb, ax + 4, ay + 2], fill=pal["boots"])
+        d.line([ax - 2 - limb, ay + 2, ax + 4, ay + 2], fill=shade)
+        if bulk:  # knee guard with a status light
+            kx, ky = ipt(knee)
+            d.rectangle([kx - 1, ky - 1, kx + 1, ky + 1], fill=pal["jacket_hi"])
+            d.point((kx, ky), fill=pal["accent"])
 
     def arm(upper_angle, fore_angle, color, glove, glow):
         elbow = step(shoulder, upper_angle, UPPER)
         hand = step(elbow, fore_angle, FORE)
-        segment(d, shoulder, elbow, 5, color)
-        segment(d, elbow, hand, 4, color)
+        segment(d, shoulder, elbow, 5 + limb, color)
+        segment(d, elbow, hand, 4 + limb, color)
+        if "tattoo" in pal:  # ink bands on the bare arm
+            a, b = ipt(shoulder), ipt(elbow)
+            for t in (0.35, 0.65):
+                d.point((round(a[0] + (b[0] - a[0]) * t), round(a[1] + (b[1] - a[1]) * t)), fill=pal["tattoo"])
+            d.point(ipt(step(elbow, fore_angle, FORE * 0.5)), fill=pal["tattoo"])
         hx, hy = ipt(hand)
-        d.ellipse([hx - 2, hy - 2, hx + 2, hy + 2], fill=glove)
+        r = 2 + limb
+        d.ellipse([hx - r, hy - r, hx + r, hy + r], fill=glove)
         d.point(ipt(step(hand, fore_angle, 1.5)), fill=glow)
 
-    # Back limbs, darker.
-    arm(p["ba"], p["bf"], pal["jacket_dark"], pal["glove"], pal["accent"])
-    leg("b", pal["pants_dark"], pal["accent"])
-
-    # Torso: jacket wedge, belt, glowing front seam.
     side = (math.cos(lean), math.sin(lean))
     def off(pt, s):
         return ipt((pt[0] + side[0] * s, pt[1] + side[1] * s))
-    d.polygon([off(hip, -5), off(hip, 5), off(neck, 6), off(neck, -6)], fill=pal["jacket"])
-    d.line([off(neck, -5), off(hip, -4)], fill=pal["jacket_dark"])
-    d.line([off(neck, 4), off(hip, 4)], fill=pal["accent"])
+
+    if style == "cyborg":  # armored back unit behind the shoulders, with launcher cells
+        bx, by = off(neck, -7)
+        d.rectangle([bx - 4, by - 6, bx + 3, by + 6], fill=pal["jacket_dark"])
+        d.rectangle([bx - 4, by - 6, bx + 3, by - 5], fill=pal["jacket_hi"])
+        for cy in (by - 3, by + 1):
+            d.point((bx - 2, cy), fill=pal["accent"])
+            d.point((bx + 1, cy), fill=pal["accent"])
+
+    # Back limbs, darker.
+    arm(p["ba"], p["bf"], pal.get("sleeve_dark", pal["jacket_dark"]), pal["glove"], pal["accent"])
+    leg("b", pal["pants_dark"], pal["accent"])
+
+    # Torso: jacket wedge, belt, glowing front seam.
+    hw, nw = 5 + bulk // 2, 6 + bulk
+    d.polygon([off(hip, -hw), off(hip, hw), off(neck, nw), off(neck, -nw)], fill=pal["jacket"])
+    d.line([off(neck, 1 - nw), off(hip, 1 - hw)], fill=pal["jacket_dark"])
+    d.line([off(neck, nw - 2), off(hip, hw - 1)], fill=pal["accent"])
     d.line([off(neck, 2), off(hip, 2)], fill=pal["jacket_hi"])
-    d.line([off(hip, -5), off(hip, 5)], fill=pal["pants_dark"], width=2)
+    d.line([off(hip, -hw), off(hip, hw)], fill=pal["pants_dark"], width=2)
     d.point(off(hip, 1), fill=pal["accent_hi"])
-    d.polygon([off(neck, -6), off(neck, -2), ipt((neck[0] - 5 + up[0] * 3, neck[1] + up[1] * 3))],
-              fill=pal["jacket_hi"])  # popped collar
+    if style == "agent":
+        d.polygon([off(neck, -6), off(neck, -2), ipt((neck[0] - 5 + up[0] * 3, neck[1] + up[1] * 3))],
+                  fill=pal["jacket_hi"])  # popped collar
+    elif style == "punk":  # tank top: an overall strap instead of a collar
+        d.line([off(neck, 3), off(hip, 0)], fill=pal["pants"])
+    else:  # chest plate and a high armored collar
+        mid = ((hip[0] + neck[0]) / 2, (hip[1] + neck[1]) / 2)
+        d.line([off(mid, -3), off(mid, 3)], fill=pal["jacket_hi"])
+        d.point(off(mid, 0), fill=pal["accent"])
+        d.polygon([off(neck, -nw + 1), off(neck, 3), ipt((neck[0] + up[0] * 4, neck[1] + up[1] * 4))],
+                  fill=pal["jacket_dark"])
 
     leg("f", pal["pants"], pal["accent"])
 
-    # Head: hair, face, visor.
     hx, hy = ipt(head)
-    d.ellipse([hx - 5, hy - 5, hx + 5, hy + 6], fill=pal["skin"])
-    d.line([hx - 5, hy + 3, hx - 3, hy + 6], fill=pal["skin_dark"])
-    d.polygon([(hx - 6, hy - 1), (hx - 5, hy - 6), (hx - 2, hy - 9), (hx, hy - 7), (hx + 2, hy - 10),
-               (hx + 4, hy - 7), (hx + 7, hy - 8), (hx + 6, hy - 3), (hx - 1, hy - 3), (hx - 4, hy + 2)],
-              fill=pal["hair"])
-    if p["dazed"]:  # visor powered down
-        d.rectangle([hx - 2, hy - 2, hx + 6, hy], fill=lerp(pal["accent"], OUTLINE[:3], 0.7))
-        d.point((hx + 2, hy - 1), fill=pal["accent"])
+    dim = lerp(pal["accent"], OUTLINE[:3], 0.7)  # powered-down visor / eyes
+    if style == "enforcer":
+        # Sealed helmet: shell, top ridge, antenna, full-width visor band, jaw guard.
+        d.ellipse([hx - 6, hy - 7, hx + 6, hy + 6], fill=pal["jacket"])
+        d.arc([hx - 6, hy - 7, hx + 6, hy + 6], 200, 320, fill=pal["jacket_hi"])
+        d.line([hx - 5, hy + 4, hx + 4, hy + 4], fill=pal["jacket_dark"])
+        d.line([hx - 5, hy - 6, hx - 5, hy - 10], fill=pal["jacket_hi"])
+        d.point((hx - 5, hy - 11), fill=pal["accent"])
+        d.rectangle([hx - 3, hy - 2, hx + 6, hy], fill=dim if p["dazed"] else pal["accent"])
+        if not p["dazed"]:
+            d.line([hx - 1, hy - 2, hx + 5, hy - 2], fill=pal["accent_hi"])
+    elif style == "cyborg":
+        # Pale face under a gunmetal skull cap ridged with cables, glowing red eyes, jaw grille.
+        d.ellipse([hx - 5, hy - 6, hx + 5, hy + 6], fill=pal["skin"])
+        d.chord([hx - 6, hy - 7, hx + 6, hy + 5], 180, 360, fill=pal["jacket"])
+        for cx in (-3, 0, 3):
+            d.line([hx + cx, hy - 6, hx + cx - 1, hy - 2], fill=pal["jacket_hi"])
+        d.line([hx - 6, hy - 1, hx + 6, hy - 1], fill=pal["jacket_dark"])
+        d.line([hx - 5, hy + 2, hx - 3, hy + 6], fill=pal["skin_dark"])
+        d.rectangle([hx, hy + 3, hx + 4, hy + 5], fill=pal["jacket_dark"])
+        d.line([hx + 1, hy + 4, hx + 3, hy + 4], fill=pal["jacket_hi"])
+        for ex in (hx + 1, hx + 4):
+            d.rectangle([ex, hy, ex + 1, hy + 1], fill=dim if p["dazed"] else pal["accent"])
+        if not p["dazed"]:
+            d.point((hx + 5, hy), fill=pal["accent_hi"])
+            d.point((hx - 3, hy - 4), fill=pal["accent"])
+    elif style == "punk":
+        # Shaved sides, tall two-tone mohawk, slim shades, earring.
+        d.ellipse([hx - 5, hy - 5, hx + 5, hy + 6], fill=pal["skin"])
+        d.line([hx - 5, hy + 3, hx - 3, hy + 6], fill=pal["skin_dark"])
+        d.line([hx - 5, hy - 3, hx - 3, hy - 4], fill=pal["skin_dark"])
+        tips = [(hx - 6, hy - 9), (hx - 2, hy - 12), (hx + 2, hy - 13), (hx + 5, hy - 10)]
+        d.polygon([(hx - 5, hy - 4), tips[0], (hx - 3, hy - 6), tips[1], (hx, hy - 7), tips[2],
+                   (hx + 3, hy - 7), tips[3], (hx + 5, hy - 4)], fill=pal["hair"])
+        for tip in tips:
+            d.point(tip, fill=pal["hair_hi"])
+        d.rectangle([hx, hy - 2, hx + 6, hy - 1], fill=dim if p["dazed"] else pal["accent"])
+        d.point((hx - 2, hy + 1), fill=pal["accent_hi"])
     else:
-        d.rectangle([hx - 2, hy - 2, hx + 6, hy], fill=pal["accent"])
-        d.line([hx + 1, hy - 2, hx + 5, hy - 2], fill=pal["accent_hi"])
-        d.point((hx + 6, hy - 1), fill=pal["accent_hi"])
+        # Head: hair, face, visor.
+        d.ellipse([hx - 5, hy - 5, hx + 5, hy + 6], fill=pal["skin"])
+        d.line([hx - 5, hy + 3, hx - 3, hy + 6], fill=pal["skin_dark"])
+        d.polygon([(hx - 6, hy - 1), (hx - 5, hy - 6), (hx - 2, hy - 9), (hx, hy - 7), (hx + 2, hy - 10),
+                   (hx + 4, hy - 7), (hx + 7, hy - 8), (hx + 6, hy - 3), (hx - 1, hy - 3), (hx - 4, hy + 2)],
+                  fill=pal["hair"])
+        if p["dazed"]:  # visor powered down
+            d.rectangle([hx - 2, hy - 2, hx + 6, hy], fill=dim)
+            d.point((hx + 2, hy - 1), fill=pal["accent"])
+        else:
+            d.rectangle([hx - 2, hy - 2, hx + 6, hy], fill=pal["accent"])
+            d.line([hx + 1, hy - 2, hx + 5, hy - 2], fill=pal["accent_hi"])
+            d.point((hx + 6, hy - 1), fill=pal["accent_hi"])
 
-    arm(p["fa"], p["ff"], pal["jacket"], pal["glove"], pal["accent_hi"])
+    arm(p["fa"], p["ff"], pal.get("sleeve", pal["jacket"]), pal["glove"], pal["accent_hi"])
+    if bulk:  # pauldron over the front shoulder
+        sx, sy = ipt(shoulder)
+        r = 2 + bulk
+        d.ellipse([sx - r, sy - r, sx + r, sy + r - 1], fill=pal["jacket_hi"])
+        d.line([sx - r + 1, sy + r - 1, sx + r - 1, sy + r - 1], fill=pal["jacket_dark"])
+        d.point((sx + 1, sy), fill=pal["accent"])
 
     # 1px dark outline.
     alpha = img.getchannel("A")
@@ -612,6 +721,50 @@ def make_ko_strip(pal):
     for col, p in enumerate(frames):
         strip.alpha_composite(draw_fighter(pal, p), (col * FRAME, 0))
     return strip
+
+
+def make_portrait(pal):
+    """Head-and-shoulders bust from the first idle frame on a dark neon gradient, 4x upscaled."""
+    bust = draw_fighter(pal, anim_frames()[0][1][0]).crop((12, 0, 52, 40))
+    bg = Image.new("RGBA", bust.size, (0, 0, 0, 255))
+    d = ImageDraw.Draw(bg)
+    top = lerp(pal["accent"], (8, 6, 18), 0.75)
+    for y in range(bust.height):
+        c = lerp(top, (8, 6, 18), y / bust.height)
+        if y % 3 == 0:  # scanlines
+            c = lerp(c, (0, 0, 0), 0.5)
+        d.line([0, y, bust.width - 1, y], fill=c + (255,))
+    bg.alpha_composite(bust)
+    return bg.resize((bust.width * 4, bust.height * 4), Image.NEAREST)
+
+
+def make_select_ui(out):
+    """White (tintable) select-screen pieces: a 9x9 star and a 24x24 9-slice neon card frame."""
+    star = Image.new("RGBA", (9, 9), (0, 0, 0, 0))
+    rows = ["....#....", "...###...", "...###...", "#########", ".#######.", "..#####..", "..#####..",
+            ".###.###.", ".#.....#."]
+    for y, row in enumerate(rows):
+        for x, c in enumerate(row):
+            if c == "#":
+                star.putpixel((x, y), (255, 255, 255, 255))
+    star.save(out / "select_star.png")
+
+    card = Image.new("RGBA", (24, 24), (0, 0, 0, 0))
+    d = ImageDraw.Draw(card)
+    for r, a in ((0, 60), (1, 130)):  # stepped outer glow
+        d.rectangle([r, r, 23 - r, 23 - r], outline=(255, 255, 255, a))
+    d.rectangle([2, 2, 21, 21], outline=(255, 255, 255, 255))
+    for x, y in ((3, 3), (20, 3), (3, 20), (20, 20)):  # corner studs
+        d.point((x, y), fill=(255, 255, 255, 255))
+    card.save(out / "select_card.png")
+
+
+def make_opponents(out):
+    out.mkdir(parents=True, exist_ok=True)
+    for oid, pal in OPPONENT_PALETTES.items():
+        make_sheet(pal).save(out / f"fighter_{oid}.png")
+        make_ko_strip(pal).save(out / f"fighter_{oid}_ko.png")
+        make_portrait(pal).save(out / f"portrait_{oid}.png")
 
 
 # ---------------------------------------------------------------- HUD
@@ -719,6 +872,8 @@ def main():
     player_ko.save(ART / "Fighters" / "fighter_player_ko.png")
     ai_ko.save(ART / "Fighters" / "fighter_ai_ko.png")
     make_hud(ART / "UI")
+    make_opponents(ART / "Fighters" / "Opponents")
+    make_select_ui(ART / "UI")
 
     if len(sys.argv) > 1:  # optional upscaled previews for review
         out = Path(sys.argv[1])
@@ -735,6 +890,16 @@ def main():
         kos.alpha_composite(player_ko, (0, 0))
         kos.alpha_composite(ai_ko, (0, FRAME))
         kos.resize((kos.width * 4, kos.height * 4), Image.NEAREST).save(out / "ko_preview.png")
+        roster = Image.new("RGBA", (FRAME * 9, FRAME * 3 + 160), (60, 60, 70, 255))
+        for i, pal in enumerate(OPPONENT_PALETTES.values()):
+            sheet = make_sheet(pal)
+            for row in range(3):  # idle 0, punch 1, kick 1 per fighter
+                src = [(0, 0), (1, 3), (1, 4)][row]
+                frame = sheet.crop((src[0] * FRAME, src[1] * FRAME, (src[0] + 1) * FRAME, (src[1] + 1) * FRAME))
+                roster.alpha_composite(frame, (FRAME * 3 * i + FRAME * row, 0))
+            roster.alpha_composite(make_ko_strip(pal), (FRAME * 3 * i, FRAME))
+            roster.alpha_composite(make_portrait(pal), (FRAME * 3 * i + 16, FRAME * 2))
+        roster.resize((roster.width * 3, roster.height * 3), Image.NEAREST).save(out / "roster_preview.png")
 
 
 if __name__ == "__main__":

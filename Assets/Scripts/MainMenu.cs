@@ -7,7 +7,7 @@ public class MainMenu : MonoBehaviour
 {
     [SerializeField] Button startButton;
     [SerializeField] Button quitButton;
-    [SerializeField] string arenaScene = "Arena";
+    [SerializeField] string selectScene = "FighterSelect";
 
     void Awake()
     {
@@ -18,7 +18,7 @@ public class MainMenu : MonoBehaviour
 
     public void StartMatch()
     {
-        SceneManager.LoadScene(arenaScene);
+        SceneManager.LoadScene(selectScene);
     }
 
     public void Quit()

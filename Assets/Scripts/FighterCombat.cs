@@ -70,6 +70,8 @@ public class FighterCombat : MonoBehaviour
     readonly List<Collider2D> overlaps = new List<Collider2D>();
     readonly HashSet<Health> hitThisSwing = new HashSet<Health>();
 
+    // Multiplies all damage this fighter deals, e.g. an opponent's difficulty bonus.
+    public float DamageScale { get; set; } = 1f;
     public bool IsAttacking => current != null;
     public bool CanAct => current == null && stunTime <= 0f && !health.IsDead;
 
@@ -152,7 +154,7 @@ public class FighterCombat : MonoBehaviour
             if (target.IsDead) continue;
 
             int multiplier = abilities != null ? abilities.DamageMultiplier : 1;
-            int damage = current.damage * multiplier;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(current.damage * multiplier * DamageScale));
             AttackType type = currentType;
             target.TakeDamage(damage, fighter.FacingDirection);
             if (type == AttackType.Punch && abilities != null)

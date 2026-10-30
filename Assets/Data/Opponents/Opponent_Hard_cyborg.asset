@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 977a10cd03628bb4685b1186a57666be, type: 3}
+  m_Name: Opponent_Hard_cyborg
+  m_EditorClassIdentifier: Assembly-CSharp::OpponentData
+  displayName: OBSIDIAN
+  bio: Black-ops cyborg assassin. More chrome than man. Reacts in a blink, hits harder and never wastes a power-up.
+  difficulty: 3
+  portrait: {fileID: 21300000, guid: 37cf1a56a554ba5438475d37e029605a, type: 3}
+  accent: {r: 1, g: 0.12, b: 0.2, a: 1}
+  sprites:
+  - {fileID: -2323246141734982529, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -6333158897455778725, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: 6766503646999331248, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: 4306341196637603744, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -4009476536059910865, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -5233013985994935547, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -6172955868549014139, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -1518368356389811329, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -6886387020856208423, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -4636651460879810341, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -4932448425978110195, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: 7814777014396459712, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: 3870998341071157288, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -1431940695688045083, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -1916127782603781380, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: 4192930208856071102, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -4034210624281540334, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: 6812979084581427411, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: 7255191485820181947, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: 3978149098482833537, guid: 3266f53cb5144d178722800e57c697cc, type: 3}
+  - {fileID: -3128236407624258610, guid: e3152ba984e3489a9d05e2c3ffec2d34, type: 3}
+  - {fileID: 9175232149246798094, guid: e3152ba984e3489a9d05e2c3ffec2d34, type: 3}
+  - {fileID: 2542183542642868015, guid: e3152ba984e3489a9d05e2c3ffec2d34, type: 3}
+  aiProfile: {fileID: 11400000, guid: 7742a4422441e974ba13284f06b5f47c, type: 2}
